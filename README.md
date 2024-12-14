@@ -39,8 +39,13 @@ env\Scripts\activate  # For Windows
 
 4. Install the required dependencies:
 ```bash
-pip install -r requirements.txt (for the backend requirements)
-npm install (for the frontend requirements)
+For the backend requirements:
+    - cd backend
+    - pip install -r requirements.txt
+
+For the frontend requirements:
+    - cd frontend
+    - npm install
 ```
 
 ## CONTRIBUTIONS
