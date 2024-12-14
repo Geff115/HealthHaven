@@ -48,6 +48,17 @@ For the frontend requirements:
     - npm install
 ```
 
+
+## RUNNING THE APP
+
+- Backend:
+
+    uvicorn main:app --reload
+
+- Frontend:
+
+    npm start
+
 ## CONTRIBUTIONS
 
 1. Fork the repository.
