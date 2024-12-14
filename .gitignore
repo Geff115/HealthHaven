@@ -1,0 +1,21 @@
+# Ignore virtual environments
+env/
+
+# Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Node.js dependencies
+frontend/node_modules/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# OS-specific files
+.DS_Store
+Thumbs.db
