@@ -32,7 +32,7 @@ cd <repo_name>
 
 3. Create and activate a virtual environment:
 ```bash
-python -m venv env
+python3 -m venv env
 source env/bin/activate  # For macOS/Linux
 env\Scripts\activate  # For Windows
 ```
