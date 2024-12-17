@@ -13,3 +13,5 @@ redis
 pytest
 pytest-asyncio
 python-dotenv
+alembic
+werkzeug
