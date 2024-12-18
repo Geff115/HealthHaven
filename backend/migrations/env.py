@@ -1,7 +1,7 @@
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy import create_engine
 from app.models.base import Base
 from app.models.user import User
 
@@ -58,26 +58,15 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    from alembic import context
-    from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
-    from app.models.base import Base
-
-    connectable = create_async_engine(
+    connectable = create_engine(
         context.config.get_main_option("sqlalchemy.url")
     )
 
-    async def do_run_migrations():
-        async with connectable.connect() as connection:
-            # Associate the connection with Alembic's context
-            await connection.run_sync(
-                lambda sync_connection: context.configure(
-                    connection=sync_connection, target_metadata=Base.metadata
-                )
-            )
-            await connection.run_sync(lambda sync_connection: context.run_migrations())
+    with connectable.connect() as connection:
+        context.configure(connection=connection, target_metadata=Base.metadata)
 
-    import asyncio
-    asyncio.run(do_run_migrations())
+        with context.begin_transaction():
+            context.run_migrations()
 
 
 if context.is_offline_mode():
