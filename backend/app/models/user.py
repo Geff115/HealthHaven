@@ -3,9 +3,9 @@
 User model
 """
 from datetime import datetime
-from app.models.base import Base, engine, async_session
+from app.models.base import Base, SessionLocal
 from sqlalchemy import Column, String, Integer, DateTime
-from sqlalchemy.future import select
+from sqlalchemy.orm import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -45,43 +45,31 @@ class User(Base):
         return check_password_hash(self.password_hash, password)
 
     @classmethod
-    async def get_user_by_username(cls, username):
+    def get_user_by_username(cls, username):
         """
         Fetch a user from the database based on the username.
         It returns the user object if found, else None.
         """
-        async with async_session() as session:
-            result = await session.execute(select(cls).where(cls.username == username))
-            if not result:
-                return None
-
-            return result.scalars().first()
+        with SessionLocal() as session:
+            return session.query(cls).filter(cls.username == username).first()
 
     @classmethod
-    async def get_user_by_id(cls, user_id):
+    def get_user_by_id(cls, user_id):
         """
         Getting a user from the database based on the
         user id.
         """
-        async with async_session() as session:
-            result = await session.execute(select(cls).where(cls.id == user_id))
-            if not result:
-                return None
-
-            return result.scalars().first()
+        with SessionLocal() as session:
+            return session.query(cls).filter(cls.id == user_id).first()
 
     @classmethod
-    async def get_user_by_email(cls, user_email):
+    def get_user_by_email(cls, user_email):
         """
         Getting a user from the database based on the
         user email.
         """
-        async with async_session() as session:
-            result = await session.execute(select(cls).where(cls.email == user_email))
-            if not result:
-                return None
-
-            return result.scalars().first()
+        with SessionLocal() as session:
+            return session.query(cls).filter(cls.email == user_email).first()
 
     async def update_user(self, **kwargs):
         """
@@ -96,22 +84,32 @@ class User(Base):
                 raise KeyError(f"User does not have the attribute '{key}'")
 
         if updated:
-            async with async_session() as session:
+            with SessionLocal() as session:
                 session.add(self)  # Add the updated
-                await session.commit()
+                session.commit()
                 return {"message": "user updated successfully"}
         return {"message": "no valid fields to update"}
 
-    async def delete_user_by_id(self, user_id):
+    @classmethod
+    def delete_user_by_id(cls, user_id):
         """
-        Deleting a user from the
-        database
+        Deleting a user by ID by fetching them from the
+        database.
         """
-        async with async_session() as session:
-            user = await self.get_user_by_id(user_id)
+        with SessionLocal() as session:
+            user = cls.get_user_by_id(user_id)
             if not user:
                 return {"message": "User does not exist"}
 
-            await session.delete(user)
-            await session.commit()
+            session.delete(user)
+            session.commit()
             return {"message": "user deleted successfully"}
+    
+    def delete(self):
+        """
+        Delete a user instance from the database
+        """
+        with SessionLocal() as session:
+            session.delet(self)
+            session.commit()
+            return {"message": f"User {self.id} deleted successfully"}
