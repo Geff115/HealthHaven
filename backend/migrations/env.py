@@ -2,8 +2,13 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import create_engine
-from app.models.base import Base
 from app.models.user import User
+from app.models.doctor import Doctor
+from app.models.symptom import Symptom
+from app.models.appointment import Appointment
+from app.models.prescription import Prescription
+from app.models.medical_record import MedicalRecord
+from app.models.base import Base
 
 
 # this is the Alembic Config object, which provides

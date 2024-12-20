@@ -4,14 +4,14 @@ Enhanced Prescription model
 """
 from datetime import datetime, timedelta
 from app.models.base import Base, SessionLocal
-from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from app.models.doctor import Doctor
-from app.models.appointment import Appointment
-import enum
+from sqlalchemy.dialects.postgresql import ENUM
+from enum import Enum as PyEnum
 
 
-class PrescriptionStatus(enum.Enum):
+
+class PrescriptionStatus(PyEnum):
     ACTIVE = "active"
     DISCONTINUED = "discontinued"
     EXPIRED = "expired"
@@ -26,7 +26,11 @@ class Prescription(Base):
     medication_name = Column(String(80), nullable=False)
     dosage = Column(String(80), nullable=False)
     instructions = Column(String(255), nullable=False)
-    status = Column(Enum(PrescriptionStatus), default=PrescriptionStatus.ACTIVE, nullable=False)
+    status = Column(
+        ENUM(PrescriptionStatus, name="prescription_status", create_type=True),
+        default=PrescriptionStatus.ACTIVE,
+        nullable=False
+    )
     expiry_date = Column(DateTime, default=lambda: datetime.utcnow() + timedelta(days=30))  # Default to 30 days
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -7,10 +7,6 @@ from app.models.base import Base, SessionLocal
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy import ForeignKey
-from app.models.user import User
-from app.models.appointment import Appointment
-from app.models.prescription import Prescription
-from app.models.medical_record import MedicalRecord
 
 
 class Doctor(Base):

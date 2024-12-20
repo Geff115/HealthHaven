@@ -8,10 +8,6 @@ from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Session, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.models.doctor import Doctor
-from app.models.appointment import Appointment
-from app.models.symptom import Symptom
-from app.models.medical_record import MedicalRecord
 
 
 class User(Base):

@@ -1,15 +1,17 @@
 from celery_app import celery_app
 from datetime import datetime, timedelta
 from pytz import timezone, utc
-from app.models.appointment import Appointment
-from app.models.user import User
-from app.models.base import SessionLocal
+
 
 @celery_app.task
 def send_reminder(appointment_id):
     """
     Task to send a reminder for an upcoming appointment.
     """
+    from app.models.appointment import Appointment
+    from app.models.user import User
+    from app.models.base import SessionLocal
+
     with SessionLocal() as session:
         # Fetch the appointment
         appointment = session.query(Appointment).filter(Appointment.id == appointment_id).first()

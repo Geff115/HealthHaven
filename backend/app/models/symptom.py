@@ -6,8 +6,6 @@ from datetime import datetime
 from app.models.base import Base, SessionLocal
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
-from app.models.user import User
-from app.models.appointment import Appointment
 
 
 class Symptom(Base):

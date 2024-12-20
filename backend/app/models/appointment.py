@@ -7,12 +7,9 @@ from app.models.base import Base, SessionLocal
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy import Date, Time, ForeignKey
-from app.models.user import User
-from app.models.doctor import Doctor
-from app.models.symptom import Symptom
-from app.models.prescription import Prescription
-from tasks import send_reminder
+from app.models.tasks import send_reminder
 from pytz import timezone, utc
+from sqlalchemy.dialects.postgresql import ENUM
 from enum import Enum as PyEnum
 
 
@@ -31,7 +28,11 @@ class Appointment(Base):
     appointment_date = Column(Date, nullable=False)
     appointment_time = Column(Time, nullable=False)
     appointment_note = Column(String(255), nullable=False)
-    status = Column(Enum(AppointmentStatus), default=AppointmentStatus.SCHEDULED, nullable=False)
+    status = Column(
+        ENUM(AppointmentStatus, name="appointment_status", create_type=True),
+        default=AppointmentStatus.SCHEDULED,
+        nullable=False
+    )
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
