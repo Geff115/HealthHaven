@@ -3,10 +3,11 @@
 Enhanced Prescription model
 """
 from datetime import datetime, timedelta
-from app.models.base import Base, SessionLocal
+from .base import Base, SessionLocal
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.sql import func
 from enum import Enum as PyEnum
 
 
@@ -21,8 +22,8 @@ class Prescription(Base):
     __tablename__ = 'prescriptions'
 
     id = Column(Integer, primary_key=True, index=True)
-    doctor_id = Column(Integer, ForeignKey('doctors.id'), nullable=False)
-    appointment_id = Column(Integer, ForeignKey('appointments.id'), nullable=False)
+    doctor_id = Column(Integer, ForeignKey('doctors.id', ondelete='CASCADE'), index=True, nullable=False)
+    appointment_id = Column(Integer, ForeignKey('appointments.id', ondelete='CASCADE'), index=True, nullable=False)
     medication_name = Column(String(80), nullable=False)
     dosage = Column(String(80), nullable=False)
     instructions = Column(String(255), nullable=False)
@@ -46,6 +47,15 @@ class Prescription(Base):
         return (f'<Prescription: {self.medication_name} ({self.dosage}), '
                 f'Status: {self.status.value}, Expires: {self.expiry_date.date()}, '
                 f'Doctor: {self.doctor_id}>')
+
+    @validates('status')
+    def validate_status(self, key, value):
+        """
+        Validate the status to ensure it matches a valid PrescriptionStatus value.
+        """
+        if value not in PrescriptionStatus.__members__.values():
+            raise ValueError(f"Invalid status: {value}. Must be one of {list(PrescriptionStatus.__members__.values())}.")
+        return value
 
     @classmethod
     def create_prescription(cls, doctor_id, appointment_id, medication_name, dosage, instructions, duration_days=30):
@@ -119,20 +129,46 @@ class Prescription(Base):
                     raise ValueError("Invalid status filter.")
                 query = query.filter(cls.status == PrescriptionStatus[status.upper()])
             return query.all()
-
+    
     @classmethod
-    def check_expired_prescriptions(cls):
-        """
-        Check and update expired prescriptions.
-        """
-        now = datetime.utcnow()
-        with SessionLocal() as session:
-            expired_prescriptions = session.query(cls).filter(
-                cls.expiry_date < now,
-                cls.status == PrescriptionStatus.ACTIVE
-            ).all()
+    def check_expired_prescriptions(cls, session=None):
+        from datetime import datetime
+        from pytz import timezone
+
+        db_timezone = timezone("Africa/Lagos")
+
+        # Use the provided session or create a new one
+        internal_session = False
+        if session is None:
+            session = SessionLocal()
+            internal_session = True
+
+        try:
+            # Current time
+            now = datetime.now(db_timezone).replace(microsecond=0)
+
+            # Check if the database is SQLite
+            if session.bind.dialect.name == "sqlite":
+                expired_prescriptions = session.query(cls).filter(
+                    cls.expiry_date < now,
+                    cls.status == PrescriptionStatus.ACTIVE
+                ).all()
+            else:
+                expired_prescriptions = session.query(cls).filter(
+                    func.timezone("Africa/Lagos", cls.expiry_date) < now,
+                    cls.status == PrescriptionStatus.ACTIVE
+                ).all()
+
             for prescription in expired_prescriptions:
                 prescription.status = PrescriptionStatus.EXPIRED
+
             session.commit()
 
-        return expired_prescriptions
+            for prescription in expired_prescriptions:
+                session.refresh(prescription)
+
+            return expired_prescriptions
+
+        finally:
+            if internal_session:
+                session.close()

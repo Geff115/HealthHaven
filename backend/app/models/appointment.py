@@ -3,14 +3,15 @@
 Appointment model
 """
 from datetime import datetime, timedelta
-from app.models.base import Base, SessionLocal
+from .base import Base, SessionLocal
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy import Date, Time, ForeignKey
-from app.models.tasks import send_reminder
+from .tasks import send_reminder
 from pytz import timezone, utc
 from sqlalchemy.dialects.postgresql import ENUM
 from enum import Enum as PyEnum
+from sqlalchemy import UniqueConstraint
 
 
 class AppointmentStatus(PyEnum):
@@ -22,10 +23,19 @@ class AppointmentStatus(PyEnum):
 class Appointment(Base):
     __tablename__ = 'appointments'
 
+    __table_args__ = (
+        UniqueConstraint(
+            'doctor_id',
+            'appointment_date',
+            'appointment_time',
+            name='uq_appointment_time'
+        ),
+    )
+
     id = Column(Integer, primary_key=True, index=True)
-    doctor_id = Column(Integer, ForeignKey('doctors.id'), nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    appointment_date = Column(Date, nullable=False)
+    doctor_id = Column(Integer, ForeignKey('doctors.id', ondelete='CASCADE'), index=True, nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    appointment_date = Column(Date, index=True, nullable=False)
     appointment_time = Column(Time, nullable=False)
     appointment_note = Column(String(255), nullable=False)
     status = Column(
@@ -39,7 +49,7 @@ class Appointment(Base):
     # Defining relationships between Doctor, User, and Prescription
     user = relationship('User', back_populates='appointments')
     doctor = relationship('Doctor', back_populates='appointments')
-    prescription = relationship('Prescription', back_populates='appointments')
+    prescriptions = relationship('Prescription', back_populates='appointment')
     symptoms = relationship('Symptom', back_populates='appointments')
 
 

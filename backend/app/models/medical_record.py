@@ -3,7 +3,7 @@
 MedicalRecord model
 """
 from datetime import datetime
-from app.models.base import Base, SessionLocal
+from .base import Base, SessionLocal
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -12,9 +12,9 @@ class MedicalRecord(Base):
     __tablename__ = 'medical_records'
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    doctor_id = Column(Integer, ForeignKey('doctors.id'), nullable=False)
-    record_date = Column(DateTime, default=datetime.utcnow, nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    doctor_id = Column(Integer, ForeignKey('doctors.id', ondelete='CASCADE'), index=True, nullable=False)
+    record_date = Column(DateTime, default=datetime.utcnow, index=True, nullable=False)
     description = Column(String(255), nullable=False)
     diagnosis = Column(String(255), nullable=True, index=True)  # Optional diagnosis
     treatment_plan = Column(String(255), nullable=True, index=True)  # Optional treatment plan
@@ -73,13 +73,15 @@ class MedicalRecord(Base):
             return records
 
     @classmethod
-    def search_records(cls, keyword):
+    def search_records(cls, keyword, session=None):
         """
         Search medical records by a keyword in the diagnosis or treatment plan.
         """
-        with SessionLocal() as session:
-            records = session.query(cls).filter(
-                (cls.diagnosis.ilike(f"%{keyword}%")) |
-                (cls.treatment_plan.ilike(f"%{keyword}%"))
-            ).all()
-            return records
+        session = session or SessionLocal()
+        records = session.query(cls).filter(
+            (cls.diagnosis.ilike(f"%{keyword}%")) |
+            (cls.treatment_plan.ilike(f"%{keyword}%")) |
+            (cls.description.ilike(f"%{keyword}%"))
+        ).all()
+
+        return records

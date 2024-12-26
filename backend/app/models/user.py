@@ -3,7 +3,7 @@
 User model
 """
 from datetime import datetime
-from app.models.base import Base, SessionLocal
+from .base import Base, SessionLocal
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Session, relationship
@@ -16,6 +16,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     first_name = Column(String(40), nullable=False, index=True)
     last_name = Column(String(40), nullable=False, index=True)
+    dob = Column(String(40), nullable=False)
     username = Column(String(40), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     email = Column(String(40), unique=True, nullable=False)
@@ -26,8 +27,8 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Defining relationship between User and Doctor, Symptom, MedicalRecord
-    doctor = relationship('Doctor', back_populates='user')
-    appointments = relationship('Appointment', back_populates='user')
+    doctor = relationship('Doctor', back_populates='user', uselist=False, primaryjoin="User.id == Doctor.user_id")
+    appointments = relationship('Appointment', back_populates='user', cascade="all, delete")
     symptoms = relationship('Symptom', back_populates='user')
     medical_records = relationship('MedicalRecord', back_populates='user')
 
@@ -120,10 +121,7 @@ class User(Base):
                 raise KeyError(f"User does not have the attribute '{key}'")
 
         if updated:
-            with SessionLocal() as session:
-                session.add(self)  # Add the updated
-                session.commit()
-                return {"message": "user updated successfully"}
+            return {"message": "user updated successfully"}
         return {"message": "no valid fields to update"}
 
     @classmethod

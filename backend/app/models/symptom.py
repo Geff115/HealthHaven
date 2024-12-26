@@ -3,7 +3,7 @@
 Enhanced Symptom model
 """
 from datetime import datetime
-from app.models.base import Base, SessionLocal
+from .base import Base, SessionLocal
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 
@@ -12,8 +12,8 @@ class Symptom(Base):
     __tablename__ = 'symptoms'
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    appointment_id = Column(Integer, ForeignKey('appointments.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    appointment_id = Column(Integer, ForeignKey('appointments.id', ondelete='CASCADE'), index=True, nullable=False)
     symptom_name = Column(String(80), nullable=False)
     severity_level = Column(Enum("mild", "moderate", "severe", name="severity_level"), nullable=False)
     description = Column(String(255), nullable=True)  # Optional field
@@ -22,7 +22,7 @@ class Symptom(Base):
 
     # Relationships
     user = relationship('User', back_populates='symptoms')
-    appointment = relationship('Appointment', back_populates='symptoms')
+    appointments = relationship('Appointment', back_populates='symptoms')
 
     def __repr__(self):
         """
@@ -32,7 +32,7 @@ class Symptom(Base):
                 f'User: {self.user_id}, Appointment: {self.appointment_id}>')
 
     @classmethod
-    def create_symptom(cls, user_id, appointment_id, symptom_name, severity_level, description=None):
+    def create_symptom(cls, user_id, appointment_id, symptom_name, severity_level, description=None, session=None):
         """
         Create a symptom for a user.
         """
@@ -41,14 +41,23 @@ class Symptom(Base):
         if severity_level not in ["mild", "moderate", "severe"]:
             raise ValueError("Invalid severity level. Choose from 'mild', 'moderate', or 'severe'.")
 
-        with SessionLocal() as session:
+        # Use the provided session or create a new one
+        internal_session = False
+        if session is None:
+            session = SessionLocal()
+            internal_session = True
+
+        try:
+            # Check for existing symptoms
             existing_symptom = session.query(cls).filter(
                 cls.user_id == user_id,
+                cls.appointment_id == appointment_id,
                 cls.symptom_name == symptom_name
             ).first()
             if existing_symptom:
                 raise ValueError("This symptom already exists for this user.")
 
+            # Create and add the new symptom
             symptom = cls(
                 user_id=user_id,
                 appointment_id=appointment_id,
@@ -60,6 +69,14 @@ class Symptom(Base):
             session.commit()
             session.refresh(symptom)
             return symptom
+        except:
+            # Rollback if any error occurs
+            session.rollback()
+            raise
+        finally:
+            # Close the session if it was created within this method
+            if internal_session:
+                session.close()
 
     @classmethod
     def get_symptom_by_name(cls, symptom_name):
@@ -91,19 +108,33 @@ class Symptom(Base):
             return symptoms
 
     @classmethod
-    def update_symptom(cls, symptom_id, **kwargs):
+    def update_symptom(cls, symptom_id, session=None, **kwargs):
         """
         Update a symptom's details.
         """
-        with SessionLocal() as session:
+        # Use the provided session or create a new one
+        internal_session = False
+        if session is None:
+            session = SessionLocal()
+            internal_session = True
+        
+        try:
             symptom = session.query(cls).filter(cls.id == symptom_id).first()
             if not symptom:
                 raise ValueError("Symptom not found.")
-
+            
+            # Update the symptom's attributes
             for key, value in kwargs.items():
                 if hasattr(symptom, key) and key != "id":
                     setattr(symptom, key, value)
-
+            
             session.commit()
             session.refresh(symptom)
             return symptom
+        except:
+            session.rollback()
+            raise
+        finally:
+            if internal_session:
+                session.close()
+
