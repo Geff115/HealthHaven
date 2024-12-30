@@ -4,7 +4,7 @@ Initializing the SQLAlchemy declarative base for
 the models, and setting up the async engine and
 sessionmaker for database connections
 """
-from ...config import database_url
+from config import database_url
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 

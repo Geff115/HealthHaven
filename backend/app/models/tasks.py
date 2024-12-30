@@ -1,6 +1,7 @@
-from ...celery_app import celery_app
+from celery_app import celery_app
 from datetime import datetime, timedelta
 from pytz import timezone, utc
+from ..db.session import get_db_session
 
 
 @celery_app.task
@@ -12,7 +13,7 @@ def send_reminder(appointment_id):
     from app.models.user import User
     from app.models.base import SessionLocal
 
-    with SessionLocal() as session:
+    with get_db_session() as session:
         # Fetch the appointment
         appointment = session.query(Appointment).filter(Appointment.id == appointment_id).first()
         if not appointment:

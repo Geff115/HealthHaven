@@ -3,11 +3,13 @@
 User model
 """
 from datetime import datetime
-from .base import Base, SessionLocal
+from .base import Base
+from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Session, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
+from email_validator import validate_email, EmailNotValidError
 
 
 class User(Base):
@@ -23,14 +25,15 @@ class User(Base):
     city = Column(String(80), nullable=False, index=True)
     state = Column(String(40), nullable=False, index=True)
     country = Column(String(40), nullable=False, index=True)
+    status = Column(String(20), default="active", nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Defining relationship between User and Doctor, Symptom, MedicalRecord
-    doctor = relationship('Doctor', back_populates='user', uselist=False, primaryjoin="User.id == Doctor.user_id")
-    appointments = relationship('Appointment', back_populates='user', cascade="all, delete")
-    symptoms = relationship('Symptom', back_populates='user')
-    medical_records = relationship('MedicalRecord', back_populates='user')
+    doctor = relationship("Doctor", back_populates='user', uselist=False)
+    appointments = relationship("Appointment", back_populates='user', cascade="all, delete")
+    symptoms = relationship("Symptom", back_populates='user')
+    medical_records = relationship("MedicalRecord", back_populates='user')
 
 
     def __repr__(self):
@@ -44,6 +47,9 @@ class User(Base):
         """
         Setting the password for a user
         """
+        # Password validation
+        if len(password) < 8:
+            raise ValueError("Password must be at least 8 characters long")
         return generate_password_hash(password)
 
     def check_password(self, password):
@@ -58,7 +64,7 @@ class User(Base):
         Fetch a user from the database based on the username.
         It returns the user object if found, else None.
         """
-        with SessionLocal() as session:
+        with get_db_session() as session:
             return session.query(cls).filter(cls.username == username).first()
 
     @classmethod
@@ -67,7 +73,7 @@ class User(Base):
         Getting a user from the database based on the
         user id.
         """
-        with SessionLocal() as session:
+        with get_db_session() as session:
             return session.query(cls).filter(cls.id == user_id).first()
 
     @classmethod
@@ -76,7 +82,7 @@ class User(Base):
         Getting a user from the database based on the
         user email.
         """
-        with SessionLocal() as session:
+        with get_db_session() as session:
             return session.query(cls).filter(cls.email == user_email).first()
     
     @classmethod
@@ -97,12 +103,27 @@ class User(Base):
         user = cls(email=email, password_hash=hashed_password, **kwargs)
 
         # saving the user instance to the database
-        with SessionLocal() as session:
+        with get_db_session() as session:
             session.add(user)
             session.commit()
             session.refresh(user)
 
         return user
+    
+    @property
+    def age(self):
+        """
+        Validating the age of a user
+        """
+        if not self.dob:
+            return None
+
+        try:
+            birth_date = datetime.strptime(self.dob, "%Y-%m-%d")
+            today = datetime.today()
+            return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+        except ValueError:
+            return None
 
     def update_user(self, **kwargs):
         """
@@ -130,7 +151,7 @@ class User(Base):
         Deleting a user by ID by fetching them from the
         database.
         """
-        with SessionLocal() as session:
+        with get_db_session() as session:
             user = cls.get_user_by_id(user_id)
             if not user:
                 return {"message": "User does not exist"}
@@ -143,7 +164,7 @@ class User(Base):
         """
         Delete a user instance from the database
         """
-        with SessionLocal() as session:
+        with get_db_session() as session:
             session.delete(self)
             session.commit()
             return {"message": f"User {self.id} deleted successfully"}

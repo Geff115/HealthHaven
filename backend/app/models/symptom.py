@@ -3,7 +3,8 @@
 Enhanced Symptom model
 """
 from datetime import datetime
-from .base import Base, SessionLocal
+from .base import Base
+from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 
@@ -21,8 +22,8 @@ class Symptom(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    user = relationship('User', back_populates='symptoms')
-    appointments = relationship('Appointment', back_populates='symptoms')
+    user = relationship("User", back_populates='symptoms')
+    appointments = relationship("Appointment", back_populates='symptoms')
 
     def __repr__(self):
         """
@@ -44,7 +45,7 @@ class Symptom(Base):
         # Use the provided session or create a new one
         internal_session = False
         if session is None:
-            session = SessionLocal()
+            session = get_db_session()
             internal_session = True
 
         try:
@@ -88,7 +89,7 @@ class Symptom(Base):
         if not isinstance(symptom_name, str):
             raise TypeError("Symptom name must be a string.")
 
-        with SessionLocal() as session:
+        with get_db_session() as session:
             symptoms = session.query(cls).filter(cls.symptom_name == symptom_name).all()
             if not symptoms:
                 return f"No symptoms found with the name: {symptom_name}"
@@ -103,7 +104,7 @@ class Symptom(Base):
         if severity_level not in ["mild", "moderate", "severe"]:
             raise ValueError("Invalid severity level. Choose from 'mild', 'moderate', or 'severe'.")
 
-        with SessionLocal() as session:
+        with get_db_session() as session:
             symptoms = session.query(cls).filter(cls.severity_level == severity_level).all()
             return symptoms
 
@@ -115,7 +116,7 @@ class Symptom(Base):
         # Use the provided session or create a new one
         internal_session = False
         if session is None:
-            session = SessionLocal()
+            session = get_db_session()
             internal_session = True
         
         try:

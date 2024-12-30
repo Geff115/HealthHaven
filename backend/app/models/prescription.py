@@ -3,7 +3,8 @@
 Enhanced Prescription model
 """
 from datetime import datetime, timedelta
-from .base import Base, SessionLocal
+from .base import Base
+from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.dialects.postgresql import ENUM
@@ -37,8 +38,8 @@ class Prescription(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Defining relationships
-    doctor = relationship('Doctor', back_populates='prescriptions')
-    appointment = relationship('Appointment', back_populates='prescriptions')
+    doctor = relationship("Doctor", back_populates='prescriptions')
+    appointment = relationship("Appointment", back_populates='prescriptions')
 
     def __repr__(self):
         """
@@ -65,7 +66,7 @@ class Prescription(Base):
         if not medication_name or not dosage:
             raise ValueError("Medication name and dosage are required.")
 
-        with SessionLocal() as session:
+        with get_db_session() as session:
             prescription = cls(
                 doctor_id=doctor_id,
                 appointment_id=appointment_id,
@@ -88,7 +89,7 @@ class Prescription(Base):
         if not medicine:
             raise ValueError("Please specify a medicine name.")
 
-        with SessionLocal() as session:
+        with get_db_session() as session:
             prescribed_drug = session.query(cls).filter(
                 cls.medication_name == medicine,
                 cls.doctor_id == doctor_id
@@ -107,7 +108,7 @@ class Prescription(Base):
         if status not in PrescriptionStatus.__members__:
             raise ValueError("Invalid prescription status.")
 
-        with SessionLocal() as session:
+        with get_db_session() as session:
             prescription = session.query(cls).filter(cls.id == prescription_id).first()
             if not prescription:
                 raise ValueError("Prescription not found.")
@@ -122,7 +123,7 @@ class Prescription(Base):
         """
         Retrieve prescriptions by doctor, optionally filtering by status.
         """
-        with SessionLocal() as session:
+        with get_db_session() as session:
             query = session.query(cls).filter(cls.doctor_id == doctor_id)
             if status:
                 if status not in PrescriptionStatus.__members__:
@@ -140,7 +141,7 @@ class Prescription(Base):
         # Use the provided session or create a new one
         internal_session = False
         if session is None:
-            session = SessionLocal()
+            session = get_db_session()
             internal_session = True
 
         try:

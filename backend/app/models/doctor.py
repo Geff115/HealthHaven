@@ -3,7 +3,8 @@
 Doctor model
 """
 from datetime import datetime
-from .base import Base, SessionLocal
+from .base import Base
+from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy import ForeignKey
@@ -22,10 +23,10 @@ class Doctor(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Defining relationships between Doctor, User, Appointment, and Prescription
-    user = relationship('User', back_populates='doctor', primaryjoin="Doctor.user_id == User.id")
-    appointments = relationship('Appointment', back_populates='doctor', cascade="all, delete")
-    prescriptions = relationship('Prescription', back_populates='doctor')
-    medical_records = relationship('MedicalRecord', back_populates='doctor')
+    user = relationship("User", back_populates='doctor')
+    appointments = relationship("Appointment", back_populates='doctor', cascade="all, delete")
+    prescriptions = relationship("Prescription", back_populates='doctor')
+    medical_records = relationship("MedicalRecord", back_populates='doctor')
 
 
     def __repr__(self):
@@ -40,7 +41,7 @@ class Doctor(Base):
         Getting a doctor from the database based on the
         doctor id.
         """
-        with SessionLocal() as session:
+        with get_db_session() as session:
             return session.query(cls).filter(cls.id == doctor_id).first()
     
     @classmethod
@@ -49,7 +50,7 @@ class Doctor(Base):
         Getting a doctor from the database based on the
         doctor username
         """
-        with SessionLocal() as session:
+        with get_db_session() as session:
             return session.query(cls).filter(cls.doctor_username == doctor_username).first()
 
     @classmethod
@@ -58,5 +59,5 @@ class Doctor(Base):
         Getting a doctor from the database based on the
         doctor's specialization.
         """
-        with SessionLocal() as session:
+        with get_db_session() as session:
             return session.query(cls).filter(cls.specialization == specialization).all()

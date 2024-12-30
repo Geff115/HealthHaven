@@ -3,7 +3,8 @@
 Appointment model
 """
 from datetime import datetime, timedelta
-from .base import Base, SessionLocal
+from .base import Base
+from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy import Date, Time, ForeignKey
@@ -47,10 +48,10 @@ class Appointment(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Defining relationships between Doctor, User, and Prescription
-    user = relationship('User', back_populates='appointments')
-    doctor = relationship('Doctor', back_populates='appointments')
-    prescriptions = relationship('Prescription', back_populates='appointment')
-    symptoms = relationship('Symptom', back_populates='appointments')
+    user = relationship("User", back_populates='appointments')
+    doctor = relationship("Doctor", back_populates='appointments')
+    prescriptions = relationship("Prescription", back_populates='appointment')
+    symptoms = relationship("Symptom", back_populates='appointments')
 
 
     def __repr__(self):
@@ -67,7 +68,7 @@ class Appointment(Base):
         """
         Validate that a doctor and user do not have overlapping appointments
         """
-        with SessionLocal() as session:
+        with get_db_session() as session:
             # Check for overlapping appointments for the doctor
             doctor_conflict = session.query(cls).filter(
                 cls.doctor_id == doctor_id,
@@ -107,7 +108,7 @@ class Appointment(Base):
         utc_dt = local_dt_with_tz.astimezone(utc)
 
         # Create and save the appointment
-        with SessionLocal() as session:
+        with get_db_session() as session:
             appointment = cls(
                 doctor_id=doctor_id,
                 user_id=user_id,
@@ -132,7 +133,7 @@ class Appointment(Base):
         """
         user_timezone = timezone(user_tz)
 
-        with SessionLocal() as session:
+        with get_db_session() as session:
             appointment = session.query(cls).filter(cls.id == appointment_id).first()
             if not appointment:
                 raise ValueError("Appointment not found.")
@@ -171,7 +172,7 @@ class Appointment(Base):
         if status not in AppointmentStatus.__members__:
             raise ValueError("Invalid Appointment status.")
 
-        with SessionLocal() as session:
+        with get_db_session() as session:
             appointment = session.query(cls).filter(cls.id == appointment_id).first()
             if not appointment:
                 raise ValueError("Appointment not found.")
@@ -187,7 +188,7 @@ class Appointment(Base):
         Fetch appointments within a date range and optionally
         filter by doctor or user.
         """
-        with SessionLocal() as session:
+        with get_db_session() as session:
             query = session.query(cls).filter(
                 cls.appointment_date >= start_date,
                 cls.appointment_date <= end_date
