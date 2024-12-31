@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+"""
+Configuring Celery to manage app
+notifications
+"""
 from celery import Celery
 
 

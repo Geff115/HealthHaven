@@ -16,3 +16,7 @@ python-dotenv
 alembic
 werkzeug
 pytz
+jose
+email_validator
+python-multipart
+pyjwt

@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""
+Authentication routes
+"""
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from datetime import timedelta
+from ..auth.jwt import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from ..models.user import User
+from ..db.session import get_db_session
+from pydantic import BaseModel, EmailStr
+
+router = APIRouter(prefix="/auth", tags=["authentication"])
+
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+    first_name: str
+    last_name: str
+    dob: str
+    city: str
+    state: str
+    country: str
+
+
+@router.post("/login")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    """Login endpoint"""
+    with get_db_session() as session:
+        user = User.get_user_by_username(form_data.username)
+        if not user or not user.check_password(form_data.password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect username or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        if user.status != "active":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Inactive user"
+            )
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/register")
+async def register(user_data: UserCreate):
+    """Register new user with validated data"""
+    with get_db_session() as session:
+        if User.get_user_by_username(user_data.username):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Username already exists"
+            )
+        if User.get_user_by_email(user_data.email):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already exists"
+            )
+        try:
+            user = User.create_user(**user_data.dict())
+            return {"message": "User created successfully", "user_id": user.id}
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal server error"
+            )

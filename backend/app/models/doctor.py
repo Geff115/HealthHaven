@@ -23,7 +23,7 @@ class Doctor(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Defining relationships between Doctor, User, Appointment, and Prescription
-    user = relationship("User", back_populates='doctor')
+    user = relationship("User", back_populates='doctor', foreign_keys=[user_id])
     appointments = relationship("Appointment", back_populates='doctor', cascade="all, delete")
     prescriptions = relationship("Prescription", back_populates='doctor')
     medical_records = relationship("MedicalRecord", back_populates='doctor')
