@@ -8,6 +8,7 @@ from datetime import timedelta
 from ..auth.jwt import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from ..models.user import User
 from ..db.session import get_db_session
+from ..logging import logger
 from pydantic import BaseModel, EmailStr
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -30,12 +31,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     with get_db_session() as session:
         user = User.get_user_by_username(form_data.username)
         if not user or not user.check_password(form_data.password):
+            logger.warning(f"Failed login attempt for username: {form_data.username}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
+        logger.info(f"User {form_data.username} logged in successfully")
         if user.status != "active":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -53,17 +56,20 @@ async def register(user_data: UserCreate):
     """Register new user with validated data"""
     with get_db_session() as session:
         if User.get_user_by_username(user_data.username):
+            logger.warning(f"Attempted registration with existing username: {user_data.username}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Username already exists"
             )
         if User.get_user_by_email(user_data.email):
+            logger.warning(f"Attempted registration with existing email: {user_data.email}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already exists"
             )
         try:
             user = User.create_user(**user_data.dict())
+            logger.info(f"New user registered: {user.username}")
             return {"message": "User created successfully", "user_id": user.id}
         except Exception as e:
             raise HTTPException(
