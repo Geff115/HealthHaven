@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health Haven</title>
-    <link rel="stylesheet" href="./static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
 
@@ -25,25 +25,25 @@
         <div class="feature-gallery">
             <div>
                 <a href="#">
-                    <img src="./static/img/doc1.jpeg" alt="">
+                    <img src="/static/img/doc1.jpeg" alt="">
                     <div class="overlay-text">View Details</div>
                 </a>
             </div>
             <div>
                 <a href="#">
-                    <img src="./static/img/doc2.jpeg" alt="">
+                    <img src="/static/img/doc2.jpeg" alt="">
                     <div class="overlay-text">Read More</div>
                 </a>
             </div>
             <div>
                 <a href="#">
-                    <img src="./static/img/doc3.jpeg" alt="">
+                    <img src="/static/img/doc3.jpeg" alt="">
                     <div class="overlay-text">Learn more</div>
                 </a>
             </div>
             <div>
                 <a href="#">
-                    <img src="./static/img/doc4.jpeg" alt="">
+                    <img src="/static/img/doc4.jpeg" alt="">
                     <div class="overlay-text">Explore</div>
                 </a>
             </div>
@@ -51,31 +51,31 @@
 
         <div class="image-gallery">
             <div class="image-box">
-                <img src="./static/img/ban1.jpeg" alt="">
+                <img src="/static/img/ban1.jpeg" alt="">
                 <p>Image description 1</p>
             </div>
             <div class="image-box">
-                <img src="./static/img/ban2.jpeg" alt="">
+                <img src="/static/img/ban2.jpeg" alt="">
                 <p>Image description 2</p>
             </div>
             <div class="image-box">
-                <img src="img/ban3.jpeg" alt="">
+                <img src="/static/img/ban3.jpeg" alt="">
                 <p>Image description 3</p>
             </div>
             <div class="image-box">
-                <img src="./static/img/ban4.jpeg" alt="">
+                <img src="/static/img/ban4.jpeg" alt="">
                 <p>Image description 4</p>
             </div>
             <div class="image-box">
-                <img src="./static/img/ban5.jpeg" alt="">
+                <img src="/static/img/ban5.jpeg" alt="">
                 <p>Image description 5</p>
             </div>
             <div class="image-box">
-                <img src="./static/img/ban6.jpeg" alt="">
+                <img src="/static/img/ban6.jpeg" alt="">
                 <p>Image description 6</p>
             </div>
             <div class="image-box">
-                <img src="./static/img/ban7.jpeg" alt="">
+                <img src="/static/img/ban7.jpeg" alt="">
                 <p>Image description 7</p>
             </div>
         </div>
@@ -93,14 +93,12 @@
             <div class="appointment-options">
                 <div>
                     <i class="fas fa-map-marker-alt"></i>
-                    <h3>Nearest Location</h3>
-                    <select>
+                    <h3>Where are you located?</h3>
+                    <select id="location-select">
                         <option value="">Select Location</option>
-                        <option value="new-york">New York</option>
-                        <option value="los-angeles">Los Angeles</option>
-                        <option value="chicago">Chicago</option>
-                        <option value="houston">Houston</option>
-                        <option value="miami">Miami</option>
+                        <option value="new-york">Africa</option>
+                        <option value="los-angeles">Europe</option>
+                        <option value="chicago">America</option>
                     </select>
                 </div>
                 <div>
@@ -111,13 +109,15 @@
                 <div>
                     <i class="fas fa-user-md"></i>
                     <h3>Top Doctors</h3>
-                    <select>
+                    <select id="specialty-select">
                         <option value="">Select Specialty</option>
                         <option value="cardiology">Cardiology</option>
                         <option value="neurology">Neurology</option>
                         <option value="orthopedics">Orthopedics</option>
                         <option value="pediatrics">Pediatrics</option>
                         <option value="dermatology">Dermatology</option>
+                        <option value="gynecology">Gynecology</option>
+                        <option value="opthalmology">Opthalmology</option>
                     </select>
                 </div>
             </div>
@@ -143,9 +143,9 @@
             <div class="footer-section">
                 <h4>Services</h4>
                 <ul>
-                    <li>Consultation 24/7</li>
-                    <li>Health Blogging</li>
-                    <li>Drug Management</li>
+                    <li>Symptom Diagnosis</li>
+                    <li>Appointment with Medical Professionals</li>
+                    <li>Health information</li>
                     <li>ML for Medicine Research</li>
                 </ul>
             </div>
@@ -162,4 +162,5 @@
         </div>  
     </footer>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="./js/index.js"></script>
 </body>  
