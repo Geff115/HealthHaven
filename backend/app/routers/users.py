@@ -2,9 +2,11 @@
 """
 User routes
 """
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import SQLAlchemyError
 from ..auth.dependencies import get_current_active_user
 from ..models.user import User
+from ..logging import security_logger
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 
@@ -22,6 +24,7 @@ class UserUpdate(BaseModel):
 @router.get("/me")
 async def get_current_user_profile(current_user: User = Depends(get_current_active_user)):
     """Get current user profile"""
+    security_logger.info(f"User profile accessed: {current_user.username}")
     return {
         "id": current_user.id,
         "username": current_user.username,
@@ -41,6 +44,11 @@ async def update_user_profile(
     """Update current user profile"""
     try:
         result = current_user.update_user(**user_data.dict(exclude_unset=True))
-        return result
+        security_logger.info(f"User profile updated: {current_user.username} - {user_data.dict(exclude_unset=True)}")
+        return {"message": "Profile updated successfully", "updated_profile": result}
     except KeyError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        security_logger.warning(f"Invalid field update attempt by user: {current_user.username} - {e}")
+        raise HTTPException(status_code=400, detail=f"Invalid field: {e}")
+    except SQLAlchemyError:
+        security_logger.error(f"Database update failed for user: {current_user.username} - {e}")
+        raise HTTPException(status_code=500, detail="Database update failed")
