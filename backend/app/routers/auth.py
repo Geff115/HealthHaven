@@ -55,23 +55,33 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 async def register(user_data: UserCreate):
     """Register new user with validated data"""
     with get_db_session() as session:
-        if User.get_user_by_username(user_data.username):
-            security_logger.warning(f"Attempted registration with existing username: {user_data.username}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username already exists"
-            )
-        if User.get_user_by_email(user_data.email):
-            security_logger.warning(f"Attempted registration with existing email: {user_data.email}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already exists"
-            )
         try:
+            # Add password strength validation
+            if len(user_data.password) < 8:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Password must be at least 8 characters long"
+                )
+
+            if User.get_user_by_username(user_data.username):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Username already exists"
+                )
+            if User.get_user_by_email(user_data.email):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email already exists"
+                )
+
             user = User.create_user(**user_data.dict())
             security_logger.info(f"New user registered: {user.username}")
             return {"message": "User created successfully", "user_id": user.id}
+
+        except HTTPException as he:
+            raise he
         except Exception as e:
+            security_logger.error(f"Error during user registration: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Internal server error"

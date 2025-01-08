@@ -6,21 +6,25 @@ application
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.exceptions import RequestValidationError
 from .routers import auth, users, admin, homepage
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+
 
 app = FastAPI(title="Health Haven API")
 
-# Determine the absolute path to the frontend directory
-frontend_path = os.path.abspath(
-    os.path.join(os.path.dirname(__name__), "../frontend")
-)
+# Get the absolute path of the frontend, static, and js directories
+frontend_path = os.path.abspath(os.path.join(os.path.dirname(__name__), "../frontend"))
 
-# Determine the path to the index.html file in the frontend directory
-index_path = os.path.join(frontend_path, "index.html")
+static_path = os.path.join(frontend_path, "static")
+js_path = os.path.join(frontend_path, "js")
+
+# mounting the js directory
+app.mount("/js", StaticFiles(directory=js_path), name="js")
+
+# mounting the static directory
+app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 # Add CORS middleware
 app.add_middleware(
@@ -31,15 +35,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve static files from the "frontend" directory
-static_path = os.path.join(frontend_path, "static")
-app.mount("/static", StaticFiles(directory=static_path), name="static")
-
-# Determine the absolute path to the "js" directory inside "frontend"
-js_path = os.path.join(frontend_path, "js")
-
-# Mount the "js" directory
-app.mount("/js", StaticFiles(directory=js_path), name="js")
 
 # Include routers
 app.include_router(auth.router)
@@ -48,13 +43,23 @@ app.include_router(admin.router)
 app.include_router(homepage.router)
 
 
-@app.get("/")
-async def serve_homepage():
-    """Serve the homepage."""
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
-    return {"detail": "Frontend index.html file not found"}
+# serve the html files
+@app.get("/", response_class=HTMLResponse)
+async def serve_index():
+    with open(os.path.join(frontend_path, "index.html")) as f:
+        return f.read()
 
+@app.get("/login.html", response_class=HTMLResponse)
+async def serve_login():
+    with open(os.path.join(frontend_path, "login.html")) as f:
+        return f.read()
+
+@app.get("/signup.html", response_class=HTMLResponse)
+async def serve_signup():
+    with open(os.path.join(frontend_path, "signup.html")) as f:
+        return f.read()
+
+# exception handlers
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
     """Handle validation errors."""

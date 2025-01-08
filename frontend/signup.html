@@ -4,39 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signup Page</title>
-    <link rel="stylesheet" href="./static/css/signup.css">
+    <link rel="stylesheet" href="/static/css/signup.css">
 </head>
 <body>
     <header>
         <div class="logo">LOGO</div>
         <nav>
-            <a href="index.html">Home</a>
-            <a href="login.html">Login</a>
+            <a href="/index.html">Home</a>
+            <a href="/login.html">Login</a>
         </nav>
     </header>
 
     <div class="container">
         <div class="signup-container">
             <h2>Create an Account</h2>
-            <form>
-                <input type="text" placeholder="First Name" required>
-                <input type="text" placeholder="Last Name" required>
-                <input type="date" placeholder="Date of Birth" required>
-                <input type="text" placeholder="Username" required>
-                <input type="email" placeholder="Email" required>
-                <input type="text" placeholder="City" required>
-                <input type="text" placeholder="State" required>
-                <input type="text" placeholder="Country" required>
-                <input type="password" placeholder="Password" required>
-                <input type="password" placeholder="Confirm Password" required>
+            <form id="signup-form">
+                <input type="text" id="first_name" placeholder="First Name" required>
+                <input type="text" id="last_name" placeholder="Last Name" required>
+                <input type="date" id="dob" placeholder="Date of Birth" required>
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="text" id="city" placeholder="City" required>
+                <input type="text" id="state" placeholder="State" required>
+                <input type="text" id="country" placeholder="Country" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <input type="password" id="confirm_password" placeholder="Confirm Password" required>
                 <button type="submit">Sign Up</button>
             </form>
-            <p class="login-link">Already have an account? <a href="login.html">Login</a></p>
+            <script src="/js/signup.js"></script>
+            <p class="login-link">Already have an account? <a href="/login.html">Login</a></p>
         </div>
     </div>
 
     <footer>
-        <p>&copy; 2025 All rights reserved | <a href="index.html">HealthHaven</a></p>
+        <p>&copy; 2025 All rights reserved | <a href="/index.html">HealthHaven</a></p>
     </footer>
 </body>
 </html>
