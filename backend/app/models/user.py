@@ -10,6 +10,18 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Session, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from email_validator import validate_email, EmailNotValidError
+from enum import Enum
+from sqlalchemy.types import Enum as SQLAlchemyEnum
+
+
+class UserRole(str, Enum):
+    USER = "user"
+    ADMIN = "admin"
+
+
+class UserStatus(str, Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
 
 
 class User(Base):
@@ -25,7 +37,8 @@ class User(Base):
     city = Column(String(80), nullable=False, index=True)
     state = Column(String(40), nullable=False, index=True)
     country = Column(String(40), nullable=False, index=True)
-    status = Column(String(20), default="active", nullable=False)
+    status = Column(SQLAlchemyEnum(UserStatus), default=UserStatus.ACTIVE, nullable=False)
+    role = Column(SQLAlchemyEnum(UserRole), default=UserRole.USER, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
