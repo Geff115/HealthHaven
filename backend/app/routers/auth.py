@@ -86,3 +86,9 @@ async def register(user_data: UserCreate):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Internal server error"
             )
+
+@router.post("/logout")
+async def logout():
+    """Logout endpoint - We'll just return a success message since the actual token 
+    invalidation will be handled on the frontend"""
+    return {"message": "Successfully logged out"}

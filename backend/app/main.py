@@ -59,6 +59,11 @@ async def serve_signup():
     with open(os.path.join(frontend_path, "signup.html")) as f:
         return f.read()
 
+@app.get("/appointment.html", response_class=HTMLResponse)
+async def serve_appointment():
+    with open(os.path.join(frontend_path, "appointment.html")) as f:
+        return f.read()
+
 # exception handlers
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
