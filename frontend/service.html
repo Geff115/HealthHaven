@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services - HealthTeam</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, #424242, #616161);
+            padding: 15px 30px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header .logo {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        header nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        header nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        header nav a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        header nav .get-started {
+            background-color: #E57373;
+            color: white;
+            font-weight: bold;
+        }
+
+        header nav .get-started:hover {
+            background-color: #d9534f;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .hero {
+            text-align: center;
+            background-color: #E57373;
+            color: white;
+            padding: 20px 15px;
+            border-radius: 10px;
+        }
+
+        .hero h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 16px;
+        }
+
+        .services {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 20px;
+        }
+
+        .service {
+            background-color: #F5F5F5;
+            border: 1px solid #BDBDBD;
+            border-radius: 10px;
+            padding: 20px;
+            flex: 1;
+            min-width: 300px;
+            max-width: 48%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .service:hover {
+            transform: scale(1.05);
+            background-color: #f1f1f1;
+        }
+
+        .service h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #424242;
+        }
+
+        .service p {
+            font-size: 14px;
+            color: #757575;
+        }
+
+        footer {
+            background: linear-gradient(90deg, #424242, #616161);
+            color: white;
+            padding: 20px 40px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        footer a {
+            color: #E57373;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .service {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">LOGO</div>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="#">Contact Us</a>
+        <a href="#" class="get-started">Get Started</a>
+    </nav>
+</header>
+
+<div class="container">
+    <div class="hero">
+        <h1>Our Services</h1>
+        <p>Providing the best medical support for you and your loved ones.</p>
+    </div>
+
+    <div class="services">
+        <div class="service">
+            <h3>Emergency Doctor Services</h3>
+            <p>We connect you with experienced emergency doctors who are available 24/7 to assist with urgent health needs. Our goal is to provide immediate care when every second matters.</p>
+        </div>
+
+        <div class="service">
+            <h3>Patient Consultations</h3>
+            <p>Our platform allows you to schedule consultations with top-rated medical professionals to discuss your health concerns and receive personalized medical advice.</p>
+        </div>
+
+        <div class="service">
+            <h3>Redefined Medical Articles</h3>
+            <p>Access a collection of well-researched and redefined medical articles that provide the latest insights and health tips to keep you informed and healthy.</p>
+        </div>
+
+        <div class="service">
+            <h3>Medical Record Keeping Platform</h3>
+            <p>Maintain a secure and accessible record of your medical history to assist doctors during emergency situations. Stay prepared and organized with our cutting-edge platform.</p>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2025 All rights reserved | HealthTeam</p>
+    <p><a href="index.html">Home</a> | <a href="#">Privacy</a> | <a href="#">Terms & Conditions</a></p>
+</footer>
+
+</body>
+</html>
