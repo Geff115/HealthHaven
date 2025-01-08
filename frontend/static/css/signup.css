@@ -27,6 +27,14 @@ header .logo {
     font-size: 28px;
     font-weight: bold;
     letter-spacing: 1px;
+    font-family: 'Georgia', serif;
+    color: #E57373;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+header .logo:hover {
+    color: #FFCDD2;
 }
 
 header nav {
