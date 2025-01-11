@@ -5,7 +5,7 @@ User model
 from datetime import datetime
 from .base import Base
 from ..db.session import get_db_session
-from sqlalchemy import Column, String, Integer, DateTime
+from sqlalchemy import Column, String, Integer, DateTime, Date
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Session, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -16,6 +16,8 @@ from sqlalchemy.types import Enum as SQLAlchemyEnum
 
 class UserRole(str, Enum):
     USER = "user"
+    DOCTOR = "doctor"
+    DOCTOR_PENDING = "doctor_pending"
     ADMIN = "admin"
 
 
@@ -30,7 +32,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     first_name = Column(String(40), nullable=False, index=True)
     last_name = Column(String(40), nullable=False, index=True)
-    dob = Column(String(40), nullable=False)
+    dob = Column(Date, nullable=False)
     username = Column(String(40), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     email = Column(String(40), unique=True, nullable=False)
@@ -132,11 +134,10 @@ class User(Base):
             return None
 
         try:
-            birth_date = datetime.strptime(self.dob, "%Y-%m-%d")
             today = datetime.today()
-            return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-        except ValueError:
-            return None
+            return today.year - self.dob.year - ((today.month, today.day) < (self.dob.month, self.dob.day))
+        except Exception as e:
+            raise ValueError(f"Error calculating age: {e}")
 
     def update_user(self, **kwargs):
         """
@@ -149,30 +150,22 @@ class User(Base):
         updated = False
         for key, value in kwargs.items():
             if hasattr(self, key):
+                # Check if the password is being updated
+                if key == "password":
+                    # Hash the new password before updating
+                    value = set_password(value)
                 setattr(self, key, value)
                 updated = True
-            else:
-                raise KeyError(f"User does not have the attribute '{key}'")
 
         if updated:
+            # Update the updated_at column
+            self.updated_at = datetime.utcnow()
+            with get_db_session as session:
+                session.add(self)
+                session.commit()
             return {"message": "user updated successfully"}
         return {"message": "no valid fields to update"}
 
-    @classmethod
-    def delete_user_by_id(cls, user_id):
-        """
-        Deleting a user by ID by fetching them from the
-        database.
-        """
-        with get_db_session() as session:
-            user = cls.get_user_by_id(user_id)
-            if not user:
-                return {"message": "User does not exist"}
-
-            session.delete(user)
-            session.commit()
-            return {"message": "user deleted successfully"}
-    
     def delete(self):
         """
         Delete a user instance from the database
@@ -181,3 +174,21 @@ class User(Base):
             session.delete(self)
             session.commit()
             return {"message": f"User {self.id} deleted successfully"}
+    
+    @classmethod
+    def search_users(cls, keyword, session=None):
+        """
+        A generic search for the Admin that searches users
+        by first_name, last_name, username, and email
+        """
+        if not session:
+            session = get_db_session()
+        
+        return cls.search(
+            keyword,
+            "first_name",
+            "last_name",
+            "username",
+            "email",
+            session
+        )

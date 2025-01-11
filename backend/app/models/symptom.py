@@ -56,7 +56,13 @@ class Symptom(Base):
                 cls.symptom_name == symptom_name
             ).first()
             if existing_symptom:
-                raise ValueError("This symptom already exists for this user.")
+                # Update the existing symptom details
+                existing_symptom.severity_level = severity_level
+                existing_symptom.description description
+                existing_symptom.updated_at = datetime.utcnow()
+                session.commit()
+                session.refresh()
+                return existing_symptom
 
             # Create and add the new symptom
             symptom = cls(
@@ -129,6 +135,8 @@ class Symptom(Base):
                 if hasattr(symptom, key) and key != "id":
                     setattr(symptom, key, value)
             
+            symptom.updated_at = datetime.utcnow()
+
             session.commit()
             session.refresh(symptom)
             return symptom

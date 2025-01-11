@@ -8,6 +8,14 @@ from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy import ForeignKey
+from enum import Enum
+from sqlalchemy.types import Enum as SQLAlchemyEnum
+
+
+class DoctorStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
 
 
 class Doctor(Base):
@@ -15,10 +23,10 @@ class Doctor(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), unique=True, nullable=False)
-    doctor_username = Column(String, ForeignKey('users.username', ondelete='CASCADE'), unique=True, nullable=False)
     phone_number = Column(String(40), nullable=False)
     specialization = Column(String(80), nullable=False, index=True)
     license_number = Column(String(80), unique=True, nullable=False, index=True)
+    status = Column(SQLAlchemyEnum(DoctorStatus), default=DoctorStatus.PENDING, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
