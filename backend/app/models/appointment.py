@@ -2,18 +2,22 @@
 """
 Appointment model
 """
+import logging
 from datetime import datetime, timedelta
 from .base import Base
 from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import Session, relationship
-from sqlalchemy import Date, Time, ForeignKey
+from sqlalchemy import Date, Time, ForeignKey, or_, and_
 from .tasks import send_reminder
 from pytz import timezone, utc
 from sqlalchemy.dialects.postgresql import ENUM
 from enum import Enum as PyEnum
 from sqlalchemy import UniqueConstraint
+from sqlalchemy.exc import SQLAlchemyError
 
+
+logger = logging.getLogger(__name__)
 
 class AppointmentStatus(PyEnum):
     SCHEDULED = "Scheduled"
@@ -53,6 +57,8 @@ class Appointment(Base):
     prescriptions = relationship("Prescription", back_populates='appointment')
     symptoms = relationship("Symptom", back_populates='appointments')
 
+    searchable_columns = ["appointment_note"]
+
 
     def __repr__(self):
         """
@@ -69,25 +75,15 @@ class Appointment(Base):
         Validate that a doctor and user do not have overlapping appointments
         """
         with get_db_session() as session:
-            # Check for overlapping appointments for the doctor
-            doctor_conflict = session.query(cls).filter(
-                cls.doctor_id == doctor_id,
-                cls.appointment_date == appointment_date,
-                cls.appointment_time == appointment_time
+            conflict = session.query(cls).filter(
+                or_(
+                    and_(cls.doctor_id == doctor_id, cls.appointment_date == appointment_date, cls.appointment_time == appointment_time),
+                    and_(cls.user_id == user_id, cls.appointment_date == appointment_date, cls.appointment_time == appointment_time)
+                )
             ).first()
 
-            if doctor_conflict:
-                raise ValueError(f"Doctor {doctor_id} already has an appointment at this time.")
-
-            # Check for overlapping appointments for the user
-            user_conflict = session.query(cls).filter(
-                cls.user_id == user_id,
-                cls.appointment_date == appointment_date,
-                cls.appointment_time == appointment_time
-            ).first()
-
-            if user_conflict:
-                raise ValueError(f"User {user_id} already has an appointment at this time.")
+            if conflict:
+                raise ValueError("Conflicting appointments exists.")
     
     @classmethod
     def create_appointment(cls, doctor_id, user_id, appointment_date, appointment_time, appointment_note, user_tz):
@@ -101,11 +97,14 @@ class Appointment(Base):
         # Ensuring the appointment is in a future time
         cls.validate_future_date(appointment_date, appointment_time)
 
-        # convert the appointment time to UTC
-        user_timezone = timezone(user_tz)
-        local_dt = datetime.combine(appointment_date, appointment_time)
-        local_dt_with_tz = user_timezone.localize(local_dt)  # Add timezone info
-        utc_dt = local_dt_with_tz.astimezone(utc)
+        try:
+            # convert the appointment time to UTC
+            user_timezone = timezone(user_tz)
+            local_dt = datetime.combine(appointment_date, appointment_time)
+            local_dt_with_tz = user_timezone.localize(local_dt)  # Add timezone info
+            utc_dt = local_dt_with_tz.astimezone(utc)
+        except Exception as e:
+            raise ValueError(f"Invalid timezone provided: {e}")
 
         # Create and save the appointment
         with get_db_session() as session:
@@ -163,7 +162,7 @@ class Appointment(Base):
         appointment_datetime = datetime.combine(appointment_date, appointment_time)
         if appointment_datetime <= now:
             raise ValueError("Appointment must be scheduled for a future time.")
-    
+
     @classmethod
     def update_status(cls, appointment_id, status):
         """
@@ -183,7 +182,7 @@ class Appointment(Base):
         return appointment
 
     @classmethod
-    def get_appointment_by_date(cls, start_date, end_date, doctor_id=None, user_id=None):
+    def get_appointment_by_date(cls, start_date, end_date, doctor_id=None, user_id=None, limit=100, offset=0):
         """
         Fetch appointments within a date range and optionally
         filter by doctor or user.
@@ -198,4 +197,25 @@ class Appointment(Base):
             if user_id:
                 query = query.filter(cls.user_id == user_id)
 
-            return query.all()
+            return query.limit(limit).offset(offset).all()
+    
+    @classmethod
+    def search_appointments(cls, user_id: int, keyword: str, session: Optional[Session] = None):
+        """
+        Search appointments by keyword for a specific user.
+        """
+        session_provided = session is not None
+        if not session_provided:
+            session = SessionLocal()
+
+        try:
+            results = cls.search(
+                keyword=keyword,
+                *cls.searchable_columns,
+                session=session
+            )
+            return [appointment for appointment in results if appointment.user_id == user_id]
+
+        finally:
+            if not session_provided:
+                session.close()

@@ -7,7 +7,8 @@ from .base import Base
 from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import Session, relationship
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, or_, and_
+from sqlalchemy.exc import SQLAlchemyError
 from enum import Enum
 from sqlalchemy.types import Enum as SQLAlchemyEnum
 
@@ -36,6 +37,8 @@ class Doctor(Base):
     prescriptions = relationship("Prescription", back_populates='doctor')
     medical_records = relationship("MedicalRecord", back_populates='doctor')
 
+    searchable_columns = ["specialization", "license_number", "user.first_name", "user.last_name"]
+
 
     def __repr__(self):
         """
@@ -51,15 +54,6 @@ class Doctor(Base):
         """
         with get_db_session() as session:
             return session.query(cls).filter(cls.id == doctor_id).first()
-    
-    @classmethod
-    def get_doctor_by_username(cls, doctor_username):
-        """
-        Getting a doctor from the database based on the
-        doctor username
-        """
-        with get_db_session() as session:
-            return session.query(cls).filter(cls.doctor_username == doctor_username).first()
 
     @classmethod
     def get_doctor_by_specialization(cls, specialization):
@@ -69,3 +63,16 @@ class Doctor(Base):
         """
         with get_db_session() as session:
             return session.query(cls).filter(cls.specialization == specialization).all()
+    
+    @classmethod
+    def search_doctors(cls, keyword, session=None, limit=100, offset=0):
+        """
+        Search doctors using the Base search method.
+        """
+        return cls.search(
+            keyword=keyword,
+            *cls.searchable_columns,
+            session=session,
+            limit=limit,
+            offset=offset
+        )

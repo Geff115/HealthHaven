@@ -7,6 +7,8 @@ from .base import Base
 from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy import and_, or_
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class MedicalRecord(Base):
@@ -25,6 +27,8 @@ class MedicalRecord(Base):
     # Relationships
     user = relationship("User", back_populates='medical_records')
     doctor = relationship("Doctor", back_populates='medical_records')
+
+    searchable_columns = ["description", "diagnosis", "treatment_plan"]
 
 
     def __repr__(self):
@@ -76,13 +80,6 @@ class MedicalRecord(Base):
     @classmethod
     def search_records(cls, keyword, session=None):
         """
-        Search medical records by a keyword in the diagnosis or treatment plan.
+        Search medical records using the Base search method.
         """
-        session = session or get_db_session()
-        records = session.query(cls).filter(
-            (cls.diagnosis.ilike(f"%{keyword}%")) |
-            (cls.treatment_plan.ilike(f"%{keyword}%")) |
-            (cls.description.ilike(f"%{keyword}%"))
-        ).all()
-
-        return records
+        return cls.search(keyword=keyword, *cls.searchable_columns, session=session)

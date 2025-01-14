@@ -2,6 +2,7 @@
 """
 Enhanced Prescription model
 """
+import logging
 from datetime import datetime, timedelta
 from .base import Base
 from ..db.session import get_db_session
@@ -9,8 +10,12 @@ from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.sql import func
+from sqlalchemy import and_, or_
 from enum import Enum as PyEnum
+from sqlalchemy.exc import SQLAlchemyError
 
+
+logger = logging.getLogger(__name__)
 
 
 class PrescriptionStatus(PyEnum):
@@ -41,6 +46,8 @@ class Prescription(Base):
     doctor = relationship("Doctor", back_populates='prescriptions')
     appointment = relationship("Appointment", back_populates='prescriptions')
 
+    searchable_columns = ["prescription_name", "dosage"]
+
     def __repr__(self):
         """
         String representation of the prescription
@@ -54,7 +61,7 @@ class Prescription(Base):
         """
         Validate the status to ensure it matches a valid PrescriptionStatus value.
         """
-        if value not in PrescriptionStatus.__members__.values():
+        if value not in list(PrescriptionStatus):
             raise ValueError(f"Invalid status: {value}. Must be one of {list(PrescriptionStatus.__members__.values())}.")
         return value
 
@@ -172,4 +179,25 @@ class Prescription(Base):
 
         finally:
             if internal_session:
+                session.close()
+    
+    @classmethod
+    def search_prescriptions(cls, user_id: int, keyword: str, session: Optional[Session] = None):
+        """
+        Search prescriptions by keyword for a specific user.
+        """
+        session_provided = session is not None
+        if not session_provided:
+            session = SessionLocal()
+
+        try:
+            results = cls.search(
+                keyword=keyword,
+                *cls.searchable_columns,
+                session=session
+            )
+            return [prescription for prescription in results if prescription.user_id == user_id]
+
+        finally:
+            if not session_provided:
                 session.close()

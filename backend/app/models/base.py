@@ -1,33 +1,90 @@
 #!/usr/bin/env python3
 """
-Initializing the SQLAlchemy declarative base for
-the models, and setting up the async engine and
-sessionmaker for database connections
+SQLAlchemy configuration module that provides:
+- Declarative base for models
+- Database engine setup with retry logic
+- Session management
+- Generic search functionality for models
 """
+from typing import List, Optional, Type, Any
+import logging
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
+from sqlalchemy import create_engine, or_, String, Column
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from sqlalchemy.exc import SQLAlchemyError, OperationalError, DatabaseError
+from sqlalchemy.engine.base import Engine
+
 from config import database_url
-from sqlalchemy import create_engine, or_, String
-from sqlalchemy.orm import declarative_base, sessionmaker
-from ..db.session import get_db_session
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Setting up SQLAlchemy dclarative base
+class DatabaseConnection:
+    """
+    Database connection manager with retry logic
+    """
+    def __init__(self, db_url: str):
+        self.db_url = db_url
+        self.engine: Optional[Engine] = None
+        self.SessionLocal: Optional[sessionmaker] = None
+
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        retry=retry_if_exception_type((OperationalError, DatabaseError)),
+        before_sleep=lambda retry_state: logger.warning(
+            f"Database connection attempt {retry_state.attempt_number} failed. Retrying..."
+        )
+    )
+    def connect(self) -> Engine:
+        """
+        Establish database connection with retry logic
+        """
+        try:
+            self.engine = create_engine(
+                self.db_url,
+                echo=True,
+                pool_pre_ping=True,
+                pool_recycle=3600,
+                pool_size=5,
+                max_overflow=10,
+                pool_timeout=30,
+            )
+            # Test the connection
+            self.engine.connect()
+            logger.info("Database connection established successfully")
+            return self.engine
+        except Exception as e:
+            logger.error(f"Failed to connect to database: {str(e)}")
+            raise
+
+    def init_session(self) -> sessionmaker:
+        """
+        Initialize session maker with the engine
+        """
+        if not self.engine:
+            self.connect()
+        
+        self.SessionLocal = sessionmaker(
+            bind=self.engine,
+            expire_on_commit=False,
+            autoflush=False,
+        )
+        return self.SessionLocal
+
+# Initialize database connection
+db = DatabaseConnection(database_url)
+try:
+    engine = db.connect()
+    SessionLocal = db.init_session()
+except Exception as e:
+    logger.error(f"Failed to initialize database: {str(e)}")
+    raise
+
+# Initialize declarative base
 Base = declarative_base()
-
-# Setting up the engine
-engine = create_engine(
-    database_url,
-    echo=True,
-    pool_pre_ping=True,
-    pool_recycle=3600,
-)
-
-# Setting up a synchronous session
-SessionLocal = sessionmaker(
-    bind=engine,
-    expire_on_commit=False,
-    auto_flush=False,
-)
-
 
 def search(cls: Type[Base], 
           keyword: str, 
@@ -35,26 +92,6 @@ def search(cls: Type[Base],
           session: Optional[Session] = None) -> List[Any]:
     """
     Generic search method for SQLAlchemy models.
-    
-    Args:
-        cls: The model class to search
-        keyword: Search term to find in specified columns
-        *columns: Column names to search. If none provided, searches all string columns
-        session: Optional existing database session
-        
-    Returns:
-        List of matching model instances
-        
-    Examples:
-        # Search specific columns
-        User.search("john", "name", "email")
-        
-        # Search all string columns
-        User.search("john")
-        
-        # Search with existing session
-        with get_db_session() as session:
-            User.search("john", session=session)
     """
     use_provided_session = session is not None
     
@@ -63,13 +100,11 @@ def search(cls: Type[Base],
     
     try:
         if not columns:
-            # Search all string columns if none specified
             searchable_columns = [
                 c for c in cls.__table__.columns 
                 if isinstance(c.type, String)
             ]
         else:
-            # Validate and get specified columns
             searchable_columns = []
             for column_name in columns:
                 column = getattr(cls, column_name, None)
@@ -77,13 +112,11 @@ def search(cls: Type[Base],
                     raise ValueError(f"Invalid column name: {column_name}")
                 searchable_columns.append(column)
 
-        # Build search conditions
         conditions = [
             column.ilike(f"%{keyword}%") 
             for column in searchable_columns
         ]
         
-        # Execute search query
         return session.query(cls).filter(or_(*conditions)).all()
 
     except SQLAlchemyError as e:

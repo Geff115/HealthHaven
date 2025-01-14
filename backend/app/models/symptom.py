@@ -7,6 +7,8 @@ from .base import Base
 from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
+from sqlalchemy import and_, or_
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class Symptom(Base):
@@ -24,6 +26,9 @@ class Symptom(Base):
     # Relationships
     user = relationship("User", back_populates='symptoms')
     appointments = relationship("Appointment", back_populates='symptoms')
+
+    # Define searchable columns
+    searchable_columns = ["symptom_name", "severity_level", "description"]
 
     def __repr__(self):
         """
@@ -58,7 +63,7 @@ class Symptom(Base):
             if existing_symptom:
                 # Update the existing symptom details
                 existing_symptom.severity_level = severity_level
-                existing_symptom.description description
+                existing_symptom.description
                 existing_symptom.updated_at = datetime.utcnow()
                 session.commit()
                 session.refresh()
@@ -146,4 +151,26 @@ class Symptom(Base):
         finally:
             if internal_session:
                 session.close()
+    
+    @classmethod
+    def search_symptoms(cls, user_id: int, keyword: str, session: Optional[Session] = None):
+        """
+        Search symptoms by keyword for a specific user.
+        """
+        session_provided = session is not None
+        if not session_provided:
+            session = SessionLocal()
 
+        try:
+            # Use the Base.search method
+            results = cls.search(
+                keyword=keyword,
+                *cls.searchable_columns,
+                session=session
+            )
+            # Filter by user_id
+            return [symptom for symptom in results if symptom.user_id == user_id]
+
+        finally:
+            if not session_provided:
+                session.close()

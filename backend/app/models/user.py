@@ -110,8 +110,13 @@ class User(Base):
             raise ValueError("email and password are required")
         if not isinstance(email, str) or not isinstance(password, str):
             raise TypeError("email and password must be strings")
+        
+        try:
+            validate_email(email)
+        except EmailNotValidError as e:
+            raise ValueError(f"Invalid email address: {str(e)}")
 
-        # calling set_password to hash he password
+        # calling set_password to hash the password
         hashed_password = cls.set_password(password)
 
         # Create a user instance
@@ -153,14 +158,14 @@ class User(Base):
                 # Check if the password is being updated
                 if key == "password":
                     # Hash the new password before updating
-                    value = set_password(value)
+                    value = self.set_password(value)
                 setattr(self, key, value)
                 updated = True
 
         if updated:
             # Update the updated_at column
             self.updated_at = datetime.utcnow()
-            with get_db_session as session:
+            with get_db_session() as session:
                 session.add(self)
                 session.commit()
             return {"message": "user updated successfully"}
@@ -176,19 +181,23 @@ class User(Base):
             return {"message": f"User {self.id} deleted successfully"}
     
     @classmethod
-    def search_users(cls, keyword, session=None):
+    def search_users(cls, keyword):
         """
         A generic search for the Admin that searches users
         by first_name, last_name, username, and email
-        """
-        if not session:
-            session = get_db_session()
+    
+        Args:
+            keyword (str): The search term to look for
         
-        return cls.search(
-            keyword,
-            "first_name",
-            "last_name",
-            "username",
-            "email",
-            session
-        )
+        Returns:
+            List[User]: List of matching user instances
+        """
+        with get_db_session() as session:
+            return cls.search(
+                keyword,
+                "first_name",
+                "last_name",
+                "username",
+                "email",
+                session=session
+            )
