@@ -29,6 +29,9 @@ def upgrade() -> None:
     userrole_enum.create(op.get_bind(), checkfirst=True)
     userstatus_enum.create(op.get_bind(), checkfirst=True)
 
+    # First update any NULL values to 'active'
+    op.execute("UPDATE users SET status = 'active' WHERE status IS NULL")
+
     # Add the `role` column using the `userrole` Enum
     op.add_column('users', sa.Column('role', userrole_enum, nullable=False, server_default='USER'))
 
@@ -41,7 +44,7 @@ def upgrade() -> None:
             CASE
                 WHEN status = 'active' THEN 'ACTIVE'
                 WHEN status = 'inactive' THEN 'INACTIVE'
-                ELSE NULL
+                ELSE 'ACTIVE'  -- Default to ACTIVE instead of NULL
             END::userstatus
         )
         """
