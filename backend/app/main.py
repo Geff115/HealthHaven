@@ -4,12 +4,14 @@ Entry point of the
 application
 """
 import os
+import redis
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.exceptions import RequestValidationError
 from .routers import auth, users, admin, homepage
 from fastapi.staticfiles import StaticFiles
+from fastapi_limiter import FastAPILimiter
 
 
 app = FastAPI(title="Health Haven API")
@@ -43,6 +45,12 @@ app.include_router(admin.router)
 app.include_router(homepage.router)
 
 
+@app.on_event("startup")
+async def startup():
+    redis_client = redis.asyncio.from_url("redis://localhost:6379", decode_responses=True)
+    await FastAPILimiter.init(redis_client)
+
+
 # serve the html files
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
@@ -63,6 +71,17 @@ async def serve_signup():
 async def serve_appointment():
     with open(os.path.join(frontend_path, "appointment.html")) as f:
         return f.read()
+
+@app.get("/forgot-password.html", response_class=HTMLResponse)
+async def serve_forgot_password():
+    with open(os.path.join(frontend_path, "forgot-password.html")) as f:
+        return f.read()
+
+@app.get("/reset-password.html", response_class=HTMLResponse)
+async def serve_reset_password():
+    with open(os.path.join(frontend_path, "reset-password.html")) as f:
+        return f.read()
+
 
 # exception handlers
 @app.exception_handler(RequestValidationError)

@@ -4,6 +4,7 @@ Enhanced Prescription model
 """
 import logging
 from datetime import datetime, timedelta
+from typing import Optional
 from .base import Base
 from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
@@ -182,7 +183,7 @@ class Prescription(Base):
                 session.close()
     
     @classmethod
-    def search_prescriptions(cls, user_id: int, keyword: str, session: Optional[Session] = None):
+    def search_prescriptions(cls, user_id: int, keyword: str, session=None):
         """
         Search prescriptions by keyword for a specific user.
         """

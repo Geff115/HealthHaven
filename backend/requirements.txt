@@ -20,3 +20,6 @@ jose
 email_validator
 python-multipart
 pyjwt
+fastapi-limiter
+aioredis
+aiosmtplib

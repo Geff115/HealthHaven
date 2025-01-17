@@ -153,7 +153,7 @@ class Symptom(Base):
                 session.close()
     
     @classmethod
-    def search_symptoms(cls, user_id: int, keyword: str, session: Optional[Session] = None):
+    def search_symptoms(cls, user_id: int, keyword: str, session=None):
         """
         Search symptoms by keyword for a specific user.
         """

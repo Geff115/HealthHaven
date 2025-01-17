@@ -4,6 +4,7 @@ Appointment model
 """
 import logging
 from datetime import datetime, timedelta
+from typing import Optional
 from .base import Base
 from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime

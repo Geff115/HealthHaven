@@ -18,7 +18,7 @@ def get_session_maker():
     """
     Import SessionLocal here to avoid circular imports
     """
-    from models.base import SessionLocal
+    from ..models.base import SessionLocal
     return SessionLocal
 
 @contextmanager
