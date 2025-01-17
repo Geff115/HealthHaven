@@ -156,7 +156,7 @@ class User(Base):
         for key, value in kwargs.items():
             if hasattr(self, key):
                 # Check if the password is being updated
-                if key == "password":
+                if key == "password_hash":
                     # Hash the new password before updating
                     value = self.set_password(value)
                 setattr(self, key, value)

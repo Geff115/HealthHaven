@@ -195,8 +195,8 @@ async def reset_password(reset_data: PasswordReset):
                 detail="User not found"
             )
 
-        # Update password
-        user.set_password(reset_data.new_password)
+        # Update user password
+        user.update_user(password_hash=reset_data.new_password)
         session.commit()
 
         # Remove the token from Redis
