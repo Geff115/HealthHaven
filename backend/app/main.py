@@ -24,7 +24,7 @@ backend_path = os.path.abspath(os.path.join(os.path.dirname(__name__), "../backe
 
 static_path = os.path.join(frontend_path, "static")
 js_path = os.path.join(frontend_path, "js")
-upload_path = os.path.join(backend_path, "uploads")
+upload_path = os.path.join(backend_path, "static/uploads")
 
 # mounting the js directory
 app.mount("/js", StaticFiles(directory=js_path), name="js")

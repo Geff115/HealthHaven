@@ -26,6 +26,7 @@ class UserUpdate(BaseModel):
     city: Optional[str] = None
     state: Optional[str] = None
     country: Optional[str] = None
+    profile_picture: Optional[bytes] = None
 
     @validator('first_name', 'last_name')
     def validate_non_empty(cls, value):
@@ -35,7 +36,7 @@ class UserUpdate(BaseModel):
 
 
 # Create upload directory if it doesn't exist
-UPLOAD_DIR = Path("backend/uploads")
+UPLOAD_DIR = Path("static/uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif"}
@@ -46,6 +47,7 @@ async def get_current_user_profile(current_user: User = Depends(get_current_acti
     """Get current user profile"""
     security_logger.info(f"User profile accessed: {current_user.username}")
     with get_db_session() as session:
+        profile_picture_url = f"{current_user.profile_picture}" if current_user.profile_picture else "/static/default_picture.jpeg"
         return {
             "id": current_user.id,
             "username": current_user.username,
@@ -55,7 +57,7 @@ async def get_current_user_profile(current_user: User = Depends(get_current_acti
             "city": current_user.city,
             "state": current_user.state,
             "country": current_user.country,
-            "profile_picture": current_user.profile_picture
+            "profile_picture": profile_picture_url
         }
 
 @router.put("/me")
@@ -93,7 +95,8 @@ async def upload_profile_picture(
 
         # Generate unique filename
         unique_filename = f"{uuid.uuid4()}{file_ext}"
-        file_location = UPLOAD_DIR / unique_filename
+        # file location for the saved image
+        file_location = Path(UPLOAD_DIR) / unique_filename
 
         # Save file
         with file_location.open("wb") as buffer:
@@ -111,13 +114,13 @@ async def upload_profile_picture(
         with get_db_session() as session:
             # Delete old profile picture if exists
             if current_user.profile_picture:
-                old_file = Path(current_user.profile_picture)
+                old_file = Path(current_user.profile_picture.replace('/static/', 'static/'))
                 if old_file.exists():
                     old_file.unlink()
 
             # Update user profile with new picture URL
             relative_path = f"/uploads/{unique_filename}"
-            current_user.profile_picture = relative_path
+            current_user.update_user(profile_picture=relative_path)
             session.add(current_user)
             session.commit()
 

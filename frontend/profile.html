@@ -12,7 +12,7 @@
             <h2>Update Your Profile</h2>
             <div class="profile-section">
                 <div class="profile-picture-container">
-                    <img id="profilePicture" src="/static/default_picture.jpeg" alt="Profile Picture" class="profile-picture">
+                    <img id="profilePicture" src="/static/default_picture.jpeg" alt="Profile Picture" class="profile-picture" onerror="console.error('Image failed to load:', this.src); this.src='/static/default_picture.jpeg';">
                     <div class="upload-overlay">
                         <label for="pictureInput" class="upload-button">
                             <span class="upload-icon">📷</span>

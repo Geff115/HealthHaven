@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
     // Show loading state
+    const profilePicture = document.getElementById("profilePicture");
     const form = document.getElementById("updateProfileForm");
     form.style.opacity = "0.6";
 
@@ -22,6 +23,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         const data = await response.json();
+
+        // Update profile picture
+        if(data.profile_picture) {
+            profilePicture.src = data.profile_picture;
+        }
         
         // Prefill form fields with null checks
         const fields = ["email", "first_name", "last_name", "city", "state", "country"];
@@ -92,12 +98,6 @@ document.getElementById("updateProfileForm").addEventListener("submit", async (e
 const profilePicture = document.getElementById('profilePicture');
 const pictureInput = document.getElementById('pictureInput');
 
-// Update profile picture when loaded
-function updateProfilePicture(data) {
-    if (data.profile_picture) {
-        profilePicture.src = data.profile_picture;
-    }
-}
 
 // Handle file selection
 pictureInput.addEventListener('change', async (e) => {
@@ -132,13 +132,33 @@ pictureInput.addEventListener('change', async (e) => {
         }
 
         const data = await response.json();
-        profilePicture.src = data.file_path;
-        showNotification('Profile picture updated successfully!', 'success');
+        console.log('Server response:', data);  // Debug line
+        if (data.file_path) {
+            profilePicture.src = data.file_path;
+            console.log('Setting profile picture src to:', data.file_path);  // Debug line
+            showNotification('Profile picture updated successfully!', 'success');
+        } else {
+            console.log('No file path received from server');
+        }
     } catch (error) {
         console.error('Error uploading profile picture:', error);
         showNotification('Failed to upload profile picture. Please try again.', 'error');
     }
 });
+
+// Update profile picture when loaded
+function updateProfilePicture(data) {
+    if (data.profile_picture) {
+        // Make sure the profilePicture element exists before updating
+        console.log('Updating profile picture with:', data.profile_picture);  // Debug line
+        profilePicture.src = data.profile_picture;
+        // Add error handling for image load
+        profilePicture.onerror = (e) => {
+            console.error('Failed to load profile picture', e);  // Debug line
+            profilePicture.src = '/static/default_picture.jpeg'; // Fallback image
+        };
+    }
+}
 
 // Add preview before upload
 pictureInput.addEventListener('change', (e) => {
@@ -163,7 +183,6 @@ async function fetchUserData() {
             const data = await response.json();
             // Update profile picture
             updateProfilePicture(data);
-            // ... rest of your existing field updates ...
         }
     } catch (error) {
         console.error('Error fetching user data:', error);
