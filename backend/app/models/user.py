@@ -39,6 +39,7 @@ class User(Base):
     city = Column(String(80), nullable=False, index=True)
     state = Column(String(40), nullable=False, index=True)
     country = Column(String(40), nullable=False, index=True)
+    profile_picture = Column(String, nullable=True)  # Stores the filename or URL
     status = Column(SQLAlchemyEnum(UserStatus), default=UserStatus.ACTIVE, nullable=False)
     role = Column(SQLAlchemyEnum(UserRole), default=UserRole.USER, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

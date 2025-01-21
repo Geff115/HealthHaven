@@ -19,14 +19,21 @@ app = FastAPI(title="Health Haven API")
 # Get the absolute path of the frontend, static, and js directories
 frontend_path = os.path.abspath(os.path.join(os.path.dirname(__name__), "../frontend"))
 
+# Get the absolute path of the backend to handle file upload
+backend_path = os.path.abspath(os.path.join(os.path.dirname(__name__), "../backend"))
+
 static_path = os.path.join(frontend_path, "static")
 js_path = os.path.join(frontend_path, "js")
+upload_path = os.path.join(backend_path, "uploads")
 
 # mounting the js directory
 app.mount("/js", StaticFiles(directory=js_path), name="js")
 
 # mounting the static directory
 app.mount("/static", StaticFiles(directory=static_path), name="static")
+
+# mounting the uploads directory
+app.mount("/uploads", StaticFiles(directory=upload_path), name="uploads")
 
 # Add CORS middleware
 app.add_middleware(
@@ -80,6 +87,21 @@ async def serve_forgot_password():
 @app.get("/reset-password.html", response_class=HTMLResponse)
 async def serve_reset_password():
     with open(os.path.join(frontend_path, "reset-password.html")) as f:
+        return f.read()
+
+@app.get("/profile.html", response_class=HTMLResponse)
+async def serve_reset_password():
+    with open(os.path.join(frontend_path, "profile.html")) as f:
+        return f.read()
+
+@app.get("/dashboard.html", response_class=HTMLResponse)
+async def serve_reset_password():
+    with open(os.path.join(frontend_path, "dashboard.html")) as f:
+        return f.read()
+
+@app.get("/service.html", response_class=HTMLResponse)
+async def serve_reset_password():
+    with open(os.path.join(frontend_path, "service.html")) as f:
         return f.read()
 
 
