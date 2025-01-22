@@ -2,9 +2,9 @@
 """
 Appointment routes
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import date, time, datetime, timedelta
-from typing import List, Optional
+from typing import List, Optional, Dict
 from pydantic import BaseModel, Field, validator
 from ..auth.dependencies import get_current_active_user
 from ..models.appointment import Appointment, AppointmentStatus
@@ -12,6 +12,8 @@ from ..models.user import User
 from ..models.doctor import Doctor
 from ..db.session import get_db_session
 from ..logging import security_logger
+from ..auth import get_current_user
+
 
 router = APIRouter(prefix="/api/v1", tags=["appointments"])
 
@@ -80,6 +82,7 @@ async def create_appointment(
     except Exception as e:
         security_logger.error(f"Appointment creation failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create appointment")
+
 
 @router.get("/{appointment_id}", response_model=AppointmentResponse)
 async def get_appointment(
@@ -196,3 +199,45 @@ async def cancel_appointment(
     except Exception as e:
         security_logger.error(f"Failed to cancel appointment: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to cancel appointment")
+
+@router.delete("/appointments/{appointment_id}", response_model=Dict[str, str], tags=["appointments"])
+async def delete_appointment(
+    appointment_id: int,
+    current_user = Depends(get_current_user)):
+     """
+        Delete an appointment by ID.
+
+        Args:
+            appointment_id: The ID of the appointment to delete
+            db: Database session
+            current_user: The authenticated user making the request
+            
+        Returns:
+            Dict with success message
+            
+        Raises:
+            HTTPException: If appointment not found or user not authorized
+        """
+        with get_db_session() as session:
+            # Get the appointment from database
+            appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+        
+            if not appointment:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Appointment not found"
+                )
+            # Check if user is authorized to delete this appointment
+        # Assuming only the appointment owner or admin can delete
+        if appointment.user_id != current_user.id and not current_user.is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to delete this appointment"
+            )
+        
+        # Delete the appointment
+        db.delete(appointment)
+        db.commit()
+        
+        return {"message": "Appointment successfully deleted"}
+
