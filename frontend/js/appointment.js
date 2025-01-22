@@ -242,6 +242,31 @@ function closeDetailsModal() {
     document.getElementById('detailsModal').classList.add('hidden');
 }
 
+// Delete appointment
+async function deleteAppointment() {
+    const appointmentId = document.getElementById('appointmentDetails').dataset.appointmentId;
+    
+    if (!confirm('Are you sure you want to delete this appointment? This action cannot be undone.')) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/appointments/${appointmentId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) throw new Error('Failed to delete appointment');
+        
+        showNotification('Appointment deleted successfully', 'success');
+        closeDetailsModal();
+        await loadAppointments();
+        
+    } catch (error) {
+        showNotification('Failed to delete appointment', 'error');
+    }
+}
+
 // Format date and time for display
 function formatDateTime(date, time) {
     const localDateTime = new Date(`${date}T${time}`);
