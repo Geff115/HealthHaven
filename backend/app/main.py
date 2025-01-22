@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.exceptions import RequestValidationError
-from .routers import auth, users, admin, homepage
+from .routers import auth, users, admin, homepage, appointments
 from fastapi.staticfiles import StaticFiles
 from fastapi_limiter import FastAPILimiter
 
@@ -50,6 +50,7 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(admin.router)
 app.include_router(homepage.router)
+app.include_router(appointments.router)
 
 
 @app.on_event("startup")

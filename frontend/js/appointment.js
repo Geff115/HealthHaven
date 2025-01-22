@@ -1,146 +1,290 @@
-// script.js
+// appointment.js
 
-const calendarGrid = document.querySelector('.calendar-grid');
-const monthYear = document.getElementById('month-year');
-const prevButton = document.getElementById('prev');
-const nextButton = document.getElementById('next');
-const bookingForm = document.getElementById('booking-form');
-const selectedDateText = document.getElementById('selected-date');
-const appointmentForm = document.getElementById('appointment-form');
-let selectedDate = null;
+// Constants
+const API_BASE_URL = '/api/v1';
+const ITEMS_PER_PAGE = 10;
+let currentPage = 1;
+let totalAppointments = 0;
 
-let currentMonth = new Date().getMonth(); // Current month
-let currentYear = new Date().getFullYear(); // Current year
+// State
+let currentUserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-// Function to render the calendar
-function renderCalendar(month, year) {
-    const firstDay = new Date(year, month).getDay();
-    const lastDate = new Date(year, month + 1, 0).getDate();
-    const days = [];
+// Initialize the page
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize date/time pickers
+    initializeDatePickers();
+    
+    // Load initial data
+    await Promise.all([
+        loadDoctors(),
+        loadAppointments()
+    ]);
 
-    // Set month and year display
-    monthYear.textContent = `${getMonthName(month)} ${year}`;
+    // Set up event listeners
+    setupEventListeners();
+});
 
-    // Clear the previous calendar grid
-    calendarGrid.innerHTML = '';
+// Initialize Flatpickr date/time pickers
+function initializeDatePickers() {
+    // Appointment date picker
+    flatpickr("#appointmentDate", {
+        minDate: "today",
+        dateFormat: "Y-m-d"
+    });
 
-    // Empty spaces for the first days of the month
-    for (let i = 0; i < firstDay; i++) {
-        days.push('');
-    }
+    // Appointment time picker
+    flatpickr("#appointmentTime", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        minTime: "09:00",
+        maxTime: "17:00",
+        minuteIncrement: 30
+    });
 
-    // Days of the current month
-    for (let day = 1; day <= lastDate; day++) {
-        days.push(day);
-    }
-
-    // Render the calendar grid
-    days.forEach((day) => {
-        const dayElement = document.createElement('div');
-        if (day !== '') {
-            dayElement.textContent = day;
-            dayElement.addEventListener('click', () => selectDate(day));
-        }
-        calendarGrid.appendChild(dayElement);
+    // Filter date picker
+    flatpickr("#dateFilter", {
+        dateFormat: "Y-m-d",
+        onChange: () => loadAppointments()
     });
 }
 
-// Function to select a date
-function selectDate(day) {
-    const formattedDate = `${getMonthName(currentMonth)} ${day}, ${currentYear}`;
-    selectedDate = new Date(currentYear, currentMonth, day);
-    selectedDateText.textContent = `You selected: ${formattedDate}`;
-    bookingForm.classList.remove('hidden');
+// Set up event listeners
+function setupEventListeners() {
+    // Form submission
+    document.getElementById('appointmentForm').addEventListener('submit', handleAppointmentSubmit);
+    
+    // Filters
+    document.getElementById('statusFilter').addEventListener('change', () => loadAppointments());
+    
+    // Pagination
+    document.getElementById('prevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            loadAppointments();
+        }
+    });
+    
+    document.getElementById('nextPage').addEventListener('click', () => {
+        if (currentPage * ITEMS_PER_PAGE < totalAppointments) {
+            currentPage++;
+            loadAppointments();
+        }
+    });
 }
 
-// Function to get month name
-function getMonthName(monthIndex) {
-    const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return months[monthIndex];
+// Load doctors for the select dropdown
+async function loadDoctors() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/doctors`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) throw new Error('Failed to fetch doctors');
+        
+        const doctors = await response.json();
+        const select = document.getElementById('doctorSelect');
+        
+        doctors.forEach(doctor => {
+            const option = document.createElement('option');
+            option.value = doctor.id;
+            option.textContent = `Dr. ${doctor.first_name} ${doctor.last_name} - ${doctor.specialization}`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        showNotification('Failed to load doctors list', 'error');
+    }
 }
 
-// Function to handle form submission
-appointmentForm.addEventListener('submit', function(event) {
+// Load appointments with filters
+async function loadAppointments() {
+    try {
+        const status = document.getElementById('statusFilter').value;
+        const date = document.getElementById('dateFilter').value;
+        
+        const queryParams = new URLSearchParams({
+            limit: ITEMS_PER_PAGE,
+            offset: (currentPage - 1) * ITEMS_PER_PAGE
+        });
+        
+        if (status) queryParams.append('status', status);
+        if (date) queryParams.append('start_date', date);
+        
+        const response = await fetch(`${API_BASE_URL}/appointments?${queryParams}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) throw new Error('Failed to fetch appointments');
+        
+        const data = await response.json();
+        totalAppointments = data.total;
+        renderAppointments(data.appointments);
+        updatePagination();
+        
+    } catch (error) {
+        showNotification('Failed to load appointments', 'error');
+    }
+}
+
+// Render appointments to the table
+function renderAppointments(appointments) {
+    const tbody = document.getElementById('appointmentsList');
+    tbody.innerHTML = '';
+    
+    appointments.forEach(appointment => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">
+                ${formatDateTime(appointment.appointment_date, appointment.appointment_time)}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                Dr. ${appointment.doctor.last_name}
+            </td>
+            <td class="px-6 py-4">
+                ${appointment.appointment_note}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(appointment.status)}">
+                    ${appointment.status}
+                </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button onclick="viewAppointment(${appointment.id})" class="text-blue-600 hover:text-blue-900 mr-2">View</button>
+                ${appointment.status === 'SCHEDULED' ? `
+                    <button onclick="cancelAppointment(${appointment.id})" class="text-red-600 hover:text-red-900">Cancel</button>
+                ` : ''}
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// Handle appointment form submission
+async function handleAppointmentSubmit(event) {
     event.preventDefault();
-    alert('Appointment booked successfully!');
-    appointmentForm.reset();
-    bookingForm.classList.add('hidden');
-    selectedDate = null;
-});
-
-// Event listeners for navigation buttons
-prevButton.addEventListener('click', () => {
-    currentMonth--;
-    if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
+    
+    const formData = new FormData(event.target);
+    const appointmentData = {
+        doctor_id: parseInt(formData.get('doctor_id')),
+        appointment_date: formData.get('appointment_date'),
+        appointment_time: formData.get('appointment_time'),
+        appointment_note: formData.get('appointment_note'),
+        user_timezone: currentUserTimezone
+    };
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/appointments`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(appointmentData)
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to book appointment');
+        }
+        
+        showNotification('Appointment booked successfully!', 'success');
+        event.target.reset();
+        await loadAppointments();
+        
+    } catch (error) {
+        showNotification(error.message, 'error');
     }
-    renderCalendar(currentMonth, currentYear);
-});
-
-nextButton.addEventListener('click', () => {
-    currentMonth++;
-    if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-    }
-    renderCalendar(currentMonth, currentYear);
-});
-
-// Initial render of the calendar
-renderCalendar(currentMonth, currentYear);
-
-// Function to generate time slots
-function generateTimeSlots() {
-  const timeSlotDropdown = document.getElementById('time-slot');
-  timeSlotDropdown.innerHTML = ''; // Clear existing options
-
-  const slots = [];
-  let startTime = new Date(selectedDate.setHours(0, 0, 0, 0)); // Start at 00:00
-  const endTime = new Date(selectedDate.setHours(23, 59, 59, 999)); // End at 23:59
-
-  while (startTime <= endTime) {
-      const formattedTime = startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      slots.push(formattedTime);
-
-      // Increment by 45 minutes
-      startTime = new Date(startTime.getTime() + 45 * 60 * 1000);
-  }
-
-  // Populate the dropdown
-  slots.forEach((slot) => {
-      const option = document.createElement('option');
-      option.value = slot;
-      option.textContent = slot;
-      timeSlotDropdown.appendChild(option);
-  });
 }
 
-// Modify the selectDate function to include time slots generation
-function selectDate(day) {
-  const formattedDate = `${getMonthName(currentMonth)} ${day}, ${currentYear}`;
-  selectedDate = new Date(currentYear, currentMonth, day);
-  selectedDateText.textContent = `You selected: ${formattedDate}`;
-  bookingForm.classList.remove('hidden');
-  generateTimeSlots();
+// Cancel appointment
+async function cancelAppointment(appointmentId) {
+    if (!confirm('Are you sure you want to cancel this appointment?')) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/appointments/${appointmentId}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) throw new Error('Failed to cancel appointment');
+        
+        showNotification('Appointment cancelled successfully', 'success');
+        await loadAppointments();
+        
+    } catch (error) {
+        showNotification('Failed to cancel appointment', 'error');
+    }
 }
 
-// Update form submission to include the selected time slot
-appointmentForm.addEventListener('submit', function(event) {
-  event.preventDefault();
-  const selectedTime = document.getElementById('time-slot').value;
-  const name = document.getElementById('name').value;
-  const email = document.getElementById('email').value;
+// View appointment details
+async function viewAppointment(appointmentId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/appointments/${appointmentId}?user_timezone=${currentUserTimezone}`);
+        if (!response.ok) throw new Error('Failed to fetch appointment details');
+        
+        const appointment = await response.json();
+        const detailsDiv = document.getElementById('appointmentDetails');
+        detailsDiv.innerHTML = `
+            <p><strong>Date & Time:</strong> ${formatDateTime(appointment.appointment_date, appointment.appointment_time)}</p>
+            <p><strong>Doctor:</strong> Dr. ${appointment.doctor.last_name}, ${appointment.doctor.specialization}</p>
+            <p><strong>Notes:</strong> ${appointment.appointment_note || 'None'}</p>
+            <p><strong>Status:</strong> ${appointment.status}</p>
+        `;
+        // Display modal or expand the details section
+        document.getElementById('detailsModal').classList.remove('hidden');
+    } catch (error) {
+        showNotification('Failed to load appointment details', 'error');
+    }
+}
 
-  if (selectedTime) {
-      alert(`Appointment booked successfully for ${selectedDateText.textContent} at ${selectedTime}.\nName: ${name}\nEmail: ${email}`);
-      appointmentForm.reset();
-      bookingForm.classList.add('hidden');
-      selectedDate = null;
-  } else {
-      alert('Please select a time slot.');
-  }
-});
+// Close modal
+function closeDetailsModal() {
+    document.getElementById('detailsModal').classList.add('hidden');
+}
+
+// Format date and time for display
+function formatDateTime(date, time) {
+    const localDateTime = new Date(`${date}T${time}`);
+    return localDateTime.toLocaleString('en-US', { 
+        timeZone: currentUserTimezone, 
+        dateStyle: 'medium', 
+        timeStyle: 'short' 
+    });
+}
+
+// Get class for appointment status
+function getStatusClass(status) {
+    switch (status) {
+        case 'SCHEDULED':
+            return 'bg-green-100 text-green-800';
+        case 'CANCELLED':
+            return 'bg-red-100 text-red-800';
+        case 'COMPLETED':
+            return 'bg-blue-100 text-blue-800';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+}
+
+function updatePagination() {
+    const prevButton = document.getElementById('prevPage');
+    const nextButton = document.getElementById('nextPage');
+    
+    prevButton.disabled = currentPage === 1;
+    nextButton.disabled = currentPage * ITEMS_PER_PAGE >= totalAppointments;
+    
+    document.getElementById('currentPage').textContent = currentPage;
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} p-4 mb-4 rounded`;
+    notification.textContent = message;
+    
+    const notificationContainer = document.getElementById('notifications');
+    notificationContainer.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}

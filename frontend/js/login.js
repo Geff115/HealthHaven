@@ -33,7 +33,7 @@ document.getElementById("login-form").addEventListener("submit", async function(
             alert("Login successful!");
 
             // Redirect to the dashboard or home page
-            window.location.href = "/";
+            window.location.href = "dashboard.html";
         } else {
             const error = await response.json();
             console.error("Login failed:", error);

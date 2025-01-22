@@ -48,3 +48,20 @@ async def get_admin_user(current_user: User = Depends(get_current_active_user)):
             detail="Insufficient permissions"
         )
     return current_user
+
+async def get_current_admin_user(token: str = Depends(oauth2_scheme)):
+    payload = verify_token(token)
+    username: str = payload.get("sub")
+    role: str = payload.get("role")
+    
+    if username is None or role != "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
+    
+    user = User.get_user_by_username(username)
+    if user is None or user.role != "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
+    return user

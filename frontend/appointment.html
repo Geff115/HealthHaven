@@ -3,41 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appointment Booking</title>
-    <link rel="stylesheet" href="./static/css/appointment.css">
+    <title>HealthHaven - Appointment Management</title>
+    <!-- Include Flatpickr for better date/time picking -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Include Toastify for notifications -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
+    <!-- Navigation -->
+    <header>
+        <a href="/" class="logo">Health H</a>
+        <nav>
+            <a href="/">Home</a>
+            <a href="services.html">Services</a>
+            <a href="contact.html">Contact Us</a>
+            <a href="#" class="get-started">Get Started</a>
+        </nav>
+    </header>
 
-    <div class="container">
-        <header>
-            <h1>Appointment Booking</h1>
-        </header>
+    <main class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Appointment Management</h1>
 
-        <section id="calendar">
-            <div class="calendar-header">
-                <button id="prev">&#60;</button>
-                <span id="month-year"></span>
-                <button id="next">&#62;</button>
-            </div>
-            <div class="calendar-grid">
-                <!-- Days will be dynamically added here -->
-            </div>
-        </section>
+        <!-- Appointment Booking Section -->
+        <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Book New Appointment</h2>
+            <form id="appointmentForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Doctor Selection -->
+                    <div>
+                        <label for="doctorSelect" class="block text-sm font-medium text-gray-700">Select Doctor</label>
+                        <select id="doctorSelect" name="doctor_id" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="">Choose a doctor...</option>
+                        </select>
+                    </div>
 
-        <section id="booking-form" class="hidden">
-            <h2>Book an Appointment</h2>
-            <p id="selected-date"></p>
-            <form id="appointment-form">
-                <label for="time-slot">Select a Time Slot:</label>
-                <select id="time-slot" required>
-                    <!-- Time slots will be dynamically added here -->
-                </select>
-                <input type="text" id="name" placeholder="Your Name" required>
-                <input type="email" id="email" placeholder="Your Email" required>
-                <input type="submit" value="Book Appointment">
+                    <!-- Date Selection -->
+                    <div>
+                        <label for="appointmentDate" class="block text-sm font-medium text-gray-700">Appointment Date</label>
+                        <input type="date" id="appointmentDate" name="appointment_date" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Time Selection -->
+                    <div>
+                        <label for="appointmentTime" class="block text-sm font-medium text-gray-700">Appointment Time</label>
+                        <input type="time" id="appointmentTime" name="appointment_time" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="md:col-span-2">
+                        <label for="appointmentNote" class="block text-sm font-medium text-gray-700">Appointment Notes</label>
+                        <textarea id="appointmentNote" name="appointment_note" rows="3" required
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit"
+                            class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Book Appointment
+                    </button>
+                </div>
             </form>
         </section>
+
+        <!-- Appointments List Section -->
+        <section class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold">My Appointments</h2>
+                <div class="flex gap-4">
+                    <!-- Filter Controls -->
+                    <select id="statusFilter" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">All Status</option>
+                        <option value="SCHEDULED">Scheduled</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                    <input type="date" id="dateFilter" 
+                           class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- Appointments Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointmentsList" class="bg-white divide-y divide-gray-200">
+                        <!-- Appointments will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="mt-4 flex justify-between items-center">
+                <div class="text-sm text-gray-700">
+                    Showing <span id="startRange">1</span> to <span id="endRange">10</span> of <span id="totalAppointments">0</span> appointments
+                </div>
+                <div class="flex gap-2">
+                    <button id="prevPage" class="px-3 py-1 border rounded-md hover:bg-gray-50">Previous</button>
+                    <button id="nextPage" class="px-3 py-1 border rounded-md hover:bg-gray-50">Next</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for Appointment Details -->
+    <div id="appointmentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+            <h2 class="text-2xl font-semibold mb-4">Appointment Details</h2>
+            <div id="appointmentDetails" class="space-y-4">
+                <!-- Details will be inserted here -->
+            </div>
+            <div class="mt-6 flex justify-end gap-4">
+                <button onclick="closeDetailsModal()"
+                        class="px-4 py-2 border rounded-md hover:bg-gray-50">
+                    Close
+                </button>
+            </div>
+        </div>
     </div>
-    <script src="./js/appointment.js"></script>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="/js/appointment.js"></script>
 </body>
 </html>
