@@ -5,16 +5,20 @@ application
 """
 import os
 import redis
-from fastapi import FastAPI, HTTPException
+import logging
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.exceptions import RequestValidationError
 from .routers import auth, users, admin, homepage, appointments
+from .auth.dependencies import get_current_user
+from .models.user import User, UserRole
 from fastapi.staticfiles import StaticFiles
 from fastapi_limiter import FastAPILimiter
 
 
 app = FastAPI(title="Health Haven API")
+logger = logging.getLogger(__name__)
 
 # Get the absolute path of the frontend, static, and js directories
 frontend_path = os.path.abspath(os.path.join(os.path.dirname(__name__), "../frontend"))
@@ -41,7 +45,8 @@ app.add_middleware(
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*", "Authorization"],
+    expose_headers=["Authorization"],
 )
 
 
@@ -91,19 +96,30 @@ async def serve_reset_password():
         return f.read()
 
 @app.get("/profile.html", response_class=HTMLResponse)
-async def serve_reset_password():
+async def serve_profile():
     with open(os.path.join(frontend_path, "profile.html")) as f:
         return f.read()
 
 @app.get("/dashboard.html", response_class=HTMLResponse)
-async def serve_reset_password():
+async def serve_dashboard():
     with open(os.path.join(frontend_path, "dashboard.html")) as f:
         return f.read()
 
 @app.get("/service.html", response_class=HTMLResponse)
-async def serve_reset_password():
+async def serve_our_services():
     with open(os.path.join(frontend_path, "service.html")) as f:
         return f.read()
+
+@app.get("/admin.html", response_class=HTMLResponse)
+async def serve_admin_page():
+    """Serve the admin page without auth check - we'll handle it client-side"""
+    try:
+        with open(os.path.join(frontend_path, "admin.html")) as f:
+            content = f.read()
+            return HTMLResponse(content=content)
+    except Exception as e:
+        logger.error(f"Error serving admin page: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # exception handlers

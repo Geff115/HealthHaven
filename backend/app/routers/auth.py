@@ -63,9 +63,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             )
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    # Extract just the role name, not the full enum value
+    role_value = user.role.value if hasattr(user.role, 'value') else str(user.role)
     access_token = create_access_token(
-        data={"sub": user.username, "role": user.role}, expires_delta=access_token_expires
+        data={"sub": user.username, "role": role_value},
+        expires_delta=access_token_expires
     )
+    print(f"Token data: {access_token}")
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/register")

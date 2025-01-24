@@ -26,6 +26,11 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create JWT token"""
     to_encode = data.copy()
+
+    # Ensure role is uppercase in the token
+    if "role" in to_encode:
+        to_encode["role"] = str(to_encode["role"]).upper()
+
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
