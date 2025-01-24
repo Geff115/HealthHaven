@@ -28,9 +28,19 @@ async function logout() {
 }
 
 // Add event listener to logout button if it exists
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     const logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {
-        logoutBtn.addEventListener("click", logout);
+        logoutBtn.addEventListener("click", function (event) {
+            event.preventDefault(); // Prevent default link behavior
+
+            // Show confirmation dialog
+            const userConfirmed = confirm("Are you sure you want to log out?");
+            if (userConfirmed) {
+                logout();
+            } else {
+                console.log("Logout canceled by the user.");
+            }
+        });
     }
 });

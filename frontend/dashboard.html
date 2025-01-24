@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Health H</title>
+    <title>Dashboard - Health Haven</title>
     <style>
         * {
             margin: 0;
@@ -145,6 +145,26 @@
                 max-width: 100%;
             }
         }
+
+        .doctor-register-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #E57373;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .doctor-register-btn:hover {
+            background-color: #EF5350;
+        }
+
+        /* Hide the doctor registration section if user is already a doctor */
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -152,10 +172,10 @@
 <header>
     <a href="/" class="logo">Health H</a>
     <nav>
-        <a href="index.html">Home</a>
+        <a href="/">Home</a>
         <a href="services.html">Services</a>
         <a href="contact.html">Contact Us</a>
-        <a href="#" class="get-started">Get Started</a>
+        <a href="#" id="logout-btn" class="Log-out">Logout</a>
     </nav>
 </header>
 
@@ -172,19 +192,16 @@
         </div>
         <div class="dashboard-section">
             <a href="/appointment.html"><h3>Book an Appointment</h3></a>
-            <p>View and manage your appointment history.</p>
+            <p>Book an appointment or manage your appointment history.</p>
         </div>
         <div class="dashboard-section">
-            <h3>Medical Records</h3>
-            <p>Access and manage your medical history.</p>
-        </div>
-        <div class="dashboard-section">
-            <h3>Change Password</h3>
+            <a href="/forgot-password.html"><h3>Change Password</h3></a>
             <p>Update your account password securely.</p>
         </div>
-        <div class="dashboard-section">
-            <h3>Delete Account</h3>
-            <p>Remove your account and all associated data.</p>
+        <div class="dashboard-section doctor-registration" id="doctorRegistrationSection">
+            <h3>Become a Doctor</h3>
+            <p>Are you a healthcare professional? Join our medical team.</p>
+            <a href="/doctor.html" class="doctor-register-btn">Register as Doctor</a>
         </div>
         <div class="dashboard-section">
             <h3>Report an Issue</h3>
@@ -192,11 +209,10 @@
         </div>
     </div>
 </div>
-
 <footer>
     <p>&copy; 2025 All rights reserved | HealthTeam</p>
-    <p><a href="index.html">Home</a> | <a href="#">Privacy</a> | <a href="#">Terms & Conditions</a></p>
+    <p><a href="/">Home</a> | <a href="#">Privacy</a> | <a href="#">Terms & Conditions</a></p>
 </footer>
-
+<script src="/js/logout.js"></script>
 </body>
 </html>

@@ -273,8 +273,10 @@ async def approve_doctor_request(
                 )
 
             user.role = UserRole.DOCTOR
-            user.approval_date = datetime.utcnow()
-            user.approved_by = admin_user.id
+            doctor.status = DoctorStatus.APPROVED
+            doctor.approved_by = admin_user.id
+            doctor.approved_at = datetime.utcnow()
+
             if approval_notes:
                 user.approval_notes = approval_notes
 

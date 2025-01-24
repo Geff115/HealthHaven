@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.exceptions import RequestValidationError
-from .routers import auth, users, admin, homepage, appointments
+from .routers import auth, users, admin, homepage, appointments, doctors
 from .auth.dependencies import get_current_user
 from .models.user import User, UserRole
 from fastapi.staticfiles import StaticFiles
@@ -56,6 +56,7 @@ app.include_router(users.router)
 app.include_router(admin.router)
 app.include_router(homepage.router)
 app.include_router(appointments.router)
+app.include_router(doctors.router)
 
 
 @app.on_event("startup")
@@ -108,6 +109,11 @@ async def serve_dashboard():
 @app.get("/service.html", response_class=HTMLResponse)
 async def serve_our_services():
     with open(os.path.join(frontend_path, "service.html")) as f:
+        return f.read()
+
+@app.get("/doctor.html", response_class=HTMLResponse)
+async def serve_login():
+    with open(os.path.join(frontend_path, "doctor.html")) as f:
         return f.read()
 
 @app.get("/admin.html", response_class=HTMLResponse)

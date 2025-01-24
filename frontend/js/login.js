@@ -9,7 +9,6 @@ document.getElementById("login-form").addEventListener("submit", async function(
     submitButton.textContent = "Logging in...";
 
     try {
-        // Create form data (FastAPI OAuth2 expects form data, not JSON)
         const formData = new URLSearchParams();
         formData.append("username", username);
         formData.append("password", password);
@@ -26,14 +25,21 @@ document.getElementById("login-form").addEventListener("submit", async function(
 
         if (response.ok) {
             const data = await response.json();
-
-            // Store the token in localStorage
             localStorage.setItem("token", data.access_token);
-            console.log("Token stored:", localStorage.getItem("token"));
-            alert("Login successful!");
+            
+            // Decode and check token data
+            const tokenParts = data.access_token.split('.');
+            const tokenPayload = JSON.parse(atob(tokenParts[1]));
+            const userRole = tokenPayload.role.toString().toLowerCase();
 
-            // Redirect to the dashboard or home page
-            window.location.href = "dashboard.html";
+            // Check role and redirect
+            if (userRole === "admin") {
+                // Store token and redirect directly
+                sessionStorage.setItem('isAdmin', 'true');
+                window.location.replace("/admin.html");
+            } else {
+                window.location.replace("/dashboard.html");
+            }
         } else {
             const error = await response.json();
             console.error("Login failed:", error);
@@ -53,6 +59,3 @@ document.getElementById("login-form").addEventListener("submit", async function(
         submitButton.textContent = "Login";
     }
 });
-
-// Add this to verify the script is loaded
-console.log("Login script loaded successfully");
