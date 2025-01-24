@@ -1,5 +1,6 @@
 from logging.config import fileConfig
 
+
 from alembic import context
 from sqlalchemy import create_engine
 from app.models.user import User
@@ -9,7 +10,6 @@ from app.models.appointment import Appointment
 from app.models.prescription import Prescription
 from app.models.medical_record import MedicalRecord
 from app.models.base import Base
-
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
