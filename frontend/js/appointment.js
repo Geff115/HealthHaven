@@ -77,7 +77,7 @@ function setupEventListeners() {
 // Load doctors for the select dropdown
 async function loadDoctors() {
     try {
-        const response = await fetch(`${API_BASE_URL}/doctors`, {
+        const response = await fetch('/doctors', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

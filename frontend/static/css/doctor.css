@@ -1,0 +1,161 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f7fa;
+    color: #333;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+footer {
+    background-color: #2e3a59;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+
+footer a {
+    color: #ffcc00;
+}
+
+footer p a:hover {
+    color: #ffb300;
+}
+
+/* Header */
+header {
+    background-color: #2e3a59;
+    color: white;
+    padding: 15px 0;
+    text-align: center;
+}
+
+header .logo {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ffcc00;
+}
+
+header nav {
+    margin-top: 10px;
+}
+
+header nav a {
+    color: white;
+    margin: 0 15px;
+    font-size: 1.1rem;
+    transition: color 0.3s;
+}
+
+header nav a:hover {
+    color: #ffcc00;
+}
+
+/* Hero Section */
+.hero {
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 30px;
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+    color: #2e3a59;
+}
+
+.hero p {
+    font-size: 1.1rem;
+    color: #7d7d7d;
+}
+
+/* Form Container */
+.form-container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.form-container h2 {
+    font-size: 2rem;
+    margin-bottom: 25px;
+    color: #2e3a59;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+label {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #424242;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #BDBDBD;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: #f4f7fb;
+    transition: border-color 0.3s ease;
+}
+
+input:focus, select:focus {
+    border-color: #0a74da;
+    outline: none;
+}
+
+button {
+    background-color: #0a74da;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #005bb5;
+}
+
+/* Error Messages */
+.error-message {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .form-container {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .form-container h2 {
+        font-size: 1.8rem;
+    }
+}
