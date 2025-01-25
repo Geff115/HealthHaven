@@ -75,6 +75,8 @@ async function fetchDoctorRequests() {
         if (!response) return;
         const data = await response.json();
         
+        console.log('Doctor requests data:', data); // Debug log
+        
         tableBody.innerHTML = data.requests.map(request => `
             <tr>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -86,16 +88,14 @@ async function fetchDoctorRequests() {
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">${request.role}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    ${request.role === 'DOCTOR_PENDING' ? `
-                        <button onclick="showApprovalModal(${request.id})" 
-                                class="bg-green-500 text-white px-3 py-1 rounded-md mr-2 hover:bg-green-600">
-                            Approve
-                        </button>
-                        <button onclick="showRejectionModal(${request.id})" 
-                                class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">
-                            Reject
-                        </button>
-                    ` : '-'}
+                    <button onclick="console.log('Approve clicked:', ${request.id}); showApprovalModal(${request.id})" 
+                            class="bg-green-500 text-white px-3 py-1 rounded-md mr-2 hover:bg-green-600">
+                        Approve
+                    </button>
+                    <button onclick="console.log('Reject clicked:', ${request.id}); showRejectionModal(${request.id})" 
+                            class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">
+                        Reject
+                    </button>
                 </td>
             </tr>
         `).join('');

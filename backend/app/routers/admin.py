@@ -259,47 +259,47 @@ async def approve_doctor_request(
     admin_user: User = Depends(get_admin_user),
     approval_notes: Optional[str] = None
 ):
-    """
-    Approve a doctor request with optional approval notes
-    """
+    """Approve a doctor request with optional approval notes"""
     try:
         with get_db_session() as session:
+            # Get the user and their doctor record
             user = await validate_user_exists(user_id, session)
-            
-            if user.role != UserRole.DOCTOR_PENDING:
+            doctor = session.query(Doctor).filter(Doctor.user_id == user.id).first()
+
+            if not doctor or user.role != UserRole.DOCTOR_PENDING:
                 raise HTTPException(
                     status_code=400,
                     detail="Can only approve pending doctor requests"
                 )
 
+            # Update both user role and doctor status
             user.role = UserRole.DOCTOR
             doctor.status = DoctorStatus.APPROVED
             doctor.approved_by = admin_user.id
             doctor.approved_at = datetime.utcnow()
 
             if approval_notes:
-                user.approval_notes = approval_notes
+                doctor.approval_notes = approval_notes
 
             session.commit()
 
             # Log the approval
             security_logger.info(
                 f"Doctor request approved | User: {user.username} | "
-                f"Approved by: {admin_user.username} | "
-                f"Notes: {approval_notes or 'None'}"
+                f"Approved by: {admin_user.username}"
             )
 
             return JSONResponse(
                 content={
                     "message": f"Doctor request approved for user {user.username}",
-                    "approval_date": user.approval_date.isoformat(),
+                    "approval_date": doctor.approved_at.isoformat(),
                     "approved_by": admin_user.username
                 }
             )
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error approving doctor request: {str(e)}")
+        security_logger.error(f"Error approving doctor request: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to approve doctor request")
 
 @router.put("/doctor-requests/{user_id}/reject")
@@ -368,11 +368,18 @@ async def get_admin_dashboard(
             )
             role_summary = {role.value: count for role, count in role_counts}
 
-            # Pending doctor requests using the correct enum value
+            # Get approved doctors count
+            total_doctors = (
+                session.query(User)
+                .filter(User.role == UserRole.DOCTOR)
+                .count()
+            )
+
+            # Pending doctor requests
             pending_count = (
-                session.query(func.count(User.id))
+                session.query(User)
                 .filter(User.role == UserRole.DOCTOR_PENDING)
-                .scalar() or 0
+                .count()
             )
 
             # Recent pending requests
@@ -388,6 +395,7 @@ async def get_admin_dashboard(
                 "total_users": total_users,
                 "role_summary": role_summary,
                 "pending_doctor_requests": pending_count,
+                "total_doctors": total_doctors,  # Add this line
                 "top_pending_requests": [
                     {
                         "id": user.id,
@@ -401,9 +409,6 @@ async def get_admin_dashboard(
                 ],
                 "recent_activities": []
             }
-
     except Exception as e:
         security_logger.error(f"Error fetching dashboard data: {str(e)}")
-        security_logger.error(f"Error type: {type(e)}")
-        security_logger.error(f"Error traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="Failed to fetch dashboard data")
