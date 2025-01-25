@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <!-- Include Toastify for notifications -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="static/css/appointment.css">
 </head>
 <body>
     <!-- Navigation -->
@@ -15,9 +16,9 @@
         <a href="/" class="logo">Health H</a>
         <nav>
             <a href="/">Home</a>
-            <a href="services.html">Services</a>
-            <a href="contact.html">Contact Us</a>
-            <a href="#" class="get-started">Get Started</a>
+            <a href="service.html">Services</a>
+            <a href="about.html">Contact Us</a>
+            <a href="/" class="get-started">Get Started</a>
         </nav>
     </header>
 
@@ -86,22 +87,31 @@
                 </div>
             </div>
 
-            <!-- Appointments Table -->
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="appointmentsList" class="bg-white divide-y divide-gray-200">
-                        <!-- Appointments will be inserted here -->
-                    </tbody>
-                </table>
+            <div id="appointmentsSection">
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="hidden flex justify-center items-center my-4">
+                    <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+
+                <!-- Appointments Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appointmentsList" class="bg-white divide-y divide-gray-200">
+                            <!-- Appointments will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Pagination Controls -->

@@ -111,6 +111,11 @@ async def serve_our_services():
     with open(os.path.join(frontend_path, "service.html")) as f:
         return f.read()
 
+@app.get("/about.html", response_class=HTMLResponse)
+async def serve_our_services():
+    with open(os.path.join(frontend_path, "about.html")) as f:
+        return f.read()
+
 @app.get("/doctor.html", response_class=HTMLResponse)
 async def serve_login():
     with open(os.path.join(frontend_path, "doctor.html")) as f:

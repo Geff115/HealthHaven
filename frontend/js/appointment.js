@@ -5,6 +5,7 @@ const API_BASE_URL = '/api/v1';
 const ITEMS_PER_PAGE = 10;
 let currentPage = 1;
 let totalAppointments = 0;
+let isLoading = false;
 
 // State
 let currentUserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -99,34 +100,46 @@ async function loadDoctors() {
 
 // Load appointments with filters
 async function loadAppointments() {
+    if (isLoading) return; // Prevent duplicate calls
+    isLoading = true;
+
     try {
+        // Show loading spinner
+        document.getElementById('loadingSpinner').classList.remove('hidden');
+
         const status = document.getElementById('statusFilter').value;
         const date = document.getElementById('dateFilter').value;
-        
+
         const queryParams = new URLSearchParams({
             limit: ITEMS_PER_PAGE,
             offset: (currentPage - 1) * ITEMS_PER_PAGE
         });
-        
+
         if (status) queryParams.append('status', status);
         if (date) queryParams.append('start_date', date);
-        
+
         const response = await fetch(`${API_BASE_URL}/appointments?${queryParams}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!response.ok) throw new Error('Failed to fetch appointments');
-        
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to load appointments');
+        }
+
         const data = await response.json();
         totalAppointments = data.total;
         renderAppointments(data.appointments);
         updatePagination();
-        
     } catch (error) {
-        showNotification('Failed to load appointments', 'error');
+        showNotification(error.message, 'error');
+    } finally {
+        // Hide loading spinner and reset loading state
+        document.getElementById('loadingSpinner').classList.add('hidden');
+        isLoading = false;
     }
 }
+
 
 // Render appointments to the table
 function renderAppointments(appointments) {
@@ -301,15 +314,15 @@ function updatePagination() {
     document.getElementById('currentPage').textContent = currentPage;
 }
 
-function showNotification(message, type) {
+function showNotification(message, type = 'info', duration = 5000) {
     const notification = document.createElement('div');
-    notification.className = `notification ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} p-4 mb-4 rounded`;
+    notification.className = `notification ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} p-4 mb-4 rounded shadow`;
     notification.textContent = message;
-    
+
     const notificationContainer = document.getElementById('notifications');
     notificationContainer.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.remove();
-    }, 5000);
+    }, duration);
 }
