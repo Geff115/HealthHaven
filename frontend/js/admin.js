@@ -215,3 +215,9 @@ function debounce(func, wait) {
         timeout = setTimeout(later, wait);
     };
 }
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.replace('/login.html');
+});

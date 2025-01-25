@@ -47,7 +47,6 @@ class DoctorRequestDetails(BaseModel):
     first_name: str
     last_name: str
     created_at: datetime
-    credentials: Optional[dict]
     specialization: Optional[str]
     license_number: Optional[str]
 
@@ -206,7 +205,7 @@ async def get_doctor_requests(
 ):
     try:
         with get_db_session() as session:
-            query = session.query(User)
+            query = session.query(User, Doctor).join(Doctor, User.id == Doctor.user_id)
 
             # Apply status filter using correct enum values
             if status == "pending":
@@ -241,9 +240,10 @@ async def get_doctor_requests(
                     "first_name": user.first_name,
                     "last_name": user.last_name,
                     "created_at": user.created_at,
-                    "credentials": None,  # We'll add this back once basic query works
+                    "specialization": doctor.specialization,
+                    "license_number": doctor.license_number,
                     "role": user.role.value
-                } for user in users],
+                } for user, doctor in users],
                 "next_page": current_page + 1 if current_page < total_pages else None,
                 "prev_page": current_page - 1 if current_page > 1 else None
             }
