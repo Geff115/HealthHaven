@@ -395,7 +395,7 @@ async def get_admin_dashboard(
                 "total_users": total_users,
                 "role_summary": role_summary,
                 "pending_doctor_requests": pending_count,
-                "total_doctors": total_doctors,  # Add this line
+                "total_doctors": total_doctors,
                 "top_pending_requests": [
                     {
                         "id": user.id,
