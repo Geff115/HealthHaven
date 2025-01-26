@@ -1,0 +1,221 @@
+/* styles.css */
+/* Base Styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(to bottom, #f3f4f6, #e5e7eb);
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* Header */
+header {
+    background-color: #1e40af;
+    color: #fff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+header .logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: white;
+}
+
+header nav a {
+    color: white;
+    text-decoration: none;
+    margin: 0 1rem;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: color 0.3s;
+}
+
+header nav a:hover {
+    color: #a5b4fc;
+}
+
+header .get-started {
+    background-color: white;
+    color: #1e40af;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+header .get-started:hover {
+    background-color: #1e40af;
+    color: white;
+    border: 2px solid white;
+}
+
+/* Forms and Buttons */
+form {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 2rem;
+}
+
+form label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #1e3a8a;
+}
+
+form input, form textarea, form select {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 1.2rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    transition: border-color 0.3s;
+    font-size: 1rem;
+    background-color: #f9fafb;
+}
+
+form input:focus, form textarea:focus, form select:focus {
+    border-color: #1e40af;
+    outline: none;
+    box-shadow: 0 0 6px rgba(30, 64, 175, 0.3);
+}
+
+form button {
+    background-color: #1e40af;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+form button:hover {
+    background-color: #1d4ed8;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+table th, table td {
+    text-align: left;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    font-size: 1rem;
+    color: #4b5563;
+}
+
+table th {
+    background-color: #f3f4f6;
+    color: #1e3a8a;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+table tbody tr:hover {
+    background-color: #f1f5f9;
+    transition: background-color 0.3s;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.pagination button {
+    padding: 0.6rem 1.2rem;
+    border: 1px solid #ccc;
+    background-color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    margin: 0 0.2rem;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.pagination button:hover {
+    background-color: #e5e7eb;
+}
+
+/* Modal */
+#appointmentModal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#appointmentModal .bg-white {
+    width: 90%;
+    max-width: 600px;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Utility */
+.text-3xl {
+    font-size: 2.25rem;
+    font-weight: bold;
+    color: #1e40af;
+}
+
+.text-2xl {
+    font-size: 1.5rem;
+    color: #374151;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.rounded-lg {
+    border-radius: 8px;
+}
+
+.shadow-md {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.bg-white {
+    background-color: white;
+}
+
+.hover\:bg-gray-50:hover {
+    background-color: #f9fafb;
+}

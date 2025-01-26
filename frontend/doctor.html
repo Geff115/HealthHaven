@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Registration - Health Haven</title>
+    <link rel="stylesheet" href="static/css/doctor.css">
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">Health Haven</a>
+        <nav>
+            <a href="/">Home</a>
+            <a href="service.html">Services</a>
+            <a href="about.html">Contact Us</a>
+            <a href="#" class="Log-out">Logout</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Doctor Registration</h1>
+            <p>Complete your profile to join our medical team.</p>
+        </div>
+
+        <div class="form-container">
+            <form id="doctorRegistrationForm">
+                <div class="form-group">
+                    <label for="phoneNumber">Phone Number</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="specialization">Specialization</label>
+                    <select id="specialization" name="specialization" required>
+                        <option value="">Select specialization</option>
+                        <!-- Will be populated from API -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="licenseNumber">License Number</label>
+                    <input type="text" id="licenseNumber" name="licenseNumber" required>
+                </div>
+
+                <button type="submit">Submit Registration</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 All rights reserved | HealthTeam</p>
+        <p><a href="/">Home</a> | <a href="#">Privacy</a> | <a href="#">Terms & Conditions</a></p>
+    </footer>
+    <script src="/js/doctor.js"></script>
+    </body>
+</html>

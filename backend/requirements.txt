@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 pydantic
 sqlalchemy
-asyncpg
+psycopg2
 python-jose
 passlib[bcrypt]
 oauthlib
@@ -11,5 +11,15 @@ httpx
 celery
 redis
 pytest
-pytest-asyncio
+pytest-cov
 python-dotenv
+alembic
+werkzeug
+pytz
+jose
+email_validator
+python-multipart
+pyjwt
+fastapi-limiter
+aioredis
+aiosmtplib

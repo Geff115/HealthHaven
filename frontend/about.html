@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - HealthTeam</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, #424242, #616161);
+            padding: 15px 30px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header .logo {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            font-family: 'Georgia', serif;
+            color: #E57373;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        header .logo:hover {
+            color: #FFCDD2;
+        }
+
+        header nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        header nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        header nav a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        header nav .get-started {
+            background-color: #E57373;
+            color: white;
+            font-weight: bold;
+        }
+
+        header nav .get-started:hover {
+            background-color: #d9534f;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .hero {
+            text-align: center;
+            background-color: #E57373;
+            color: white;
+            padding: 20px 15px;
+            border-radius: 10px;
+        }
+
+        .hero h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 16px;
+        }
+
+        .about-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .about-section h2 {
+            font-size: 24px;
+            color: #424242;
+            margin-bottom: 15px;
+        }
+
+        .about-section p {
+            font-size: 16px;
+            color: #757575;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .team {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .team-member {
+            background-color: #F5F5F5;
+            border: 1px solid #BDBDBD;
+            border-radius: 10px;
+            text-align: center;
+            padding: 20px;
+            flex: 1;
+            min-width: 250px;
+            max-width: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .team-member:hover {
+            transform: scale(1.05);
+            background-color: #f1f1f1;
+        }
+
+        .team-member img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            object-fit: cover;
+        }
+
+        .team-member h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: #424242;
+        }
+
+        .team-member p {
+            font-size: 14px;
+            color: #757575;
+        }
+
+        footer {
+            background: linear-gradient(90deg, #424242, #616161);
+            color: white;
+            padding: 20px 40px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        footer a {
+            color: #E57373;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .team-member {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="/" class="logo">Health H</a>
+    <nav>
+        <a href="/">Home</a>
+        <a href="service.html">Services</a>
+        <a href="/" class="get-started">Get Started</a>
+    </nav>
+</header>
+
+<div class="container">
+    <div class="hero">
+        <h1>About Us</h1>
+        <p>Learn more about who we are and what we do.</p>
+    </div>
+
+    <div class="about-section">
+        <h2>Who We Are</h2>
+        <p>
+            At HealthTeam, we are committed to providing world-class medical support and innovative healthcare solutions.
+            Our mission is to make healthcare accessible, efficient, and effective for everyone. With a team of dedicated
+            professionals, we strive to improve the well-being of individuals and communities worldwide.
+        </p>
+        <p>
+            Whether it’s through connecting patients with top doctors, delivering valuable medical articles, or maintaining
+            accessible health records, HealthTeam is here to make a difference in your life.
+        </p>
+    </div>
+
+    <div class="about-section">
+        <h2>Meet Our Team</h2>
+        <div class="team">
+            <div class="team-member">
+                <img src="img/team1.jpg" alt="Team Member 1">
+                <h3>Dr. John Doe</h3>
+                <p>Chief Medical Officer</p>
+            </div>
+            <div class="team-member">
+                <img src="img/team2.jpg" alt="Team Member 2">
+                <h3>Jane Smith</h3>
+                <p>Head of Patient Services</p>
+            </div>
+            <div class="team-member">
+                <img src="img/team3.jpg" alt="Team Member 3">
+                <h3>Mark Johnson</h3>
+                <p>Lead Software Developer</p>
+            </div>
+            <div class="team-member">
+                <img src="img/team4.jpg" alt="Team Member 4">
+                <h3>Emily White</h3>
+                <p>Content Strategist</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2025 All rights reserved | HealthTeam</p>
+    <p><a href="index.html">Home</a> | <a href="#">Privacy</a> | <a href="#">Terms & Conditions</a></p>
+</footer>
+
+</body>
+</html>
