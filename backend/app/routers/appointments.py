@@ -2,7 +2,7 @@
 """
 Appointment routes
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from datetime import date, time, datetime, timedelta
 from typing import List, Optional, Dict
 from pydantic import BaseModel, Field, validator
@@ -48,6 +48,13 @@ class AppointmentUpdate(BaseModel):
         if v not in AppointmentStatus.__members__:
             raise ValueError(f"Invalid status. Must be one of: {list(AppointmentStatus.__members__.keys())}")
         return v
+
+class DoctorResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    specialization: str
+    phone_number: str
 
 @router.post("/", response_model=AppointmentResponse)
 async def create_appointment(
@@ -106,20 +113,19 @@ async def get_appointment(
 
 @router.get("/", response_model=List[AppointmentResponse])
 async def list_appointments(
-    start_date: date = None,
-    end_date: date = None,
-    status: Optional[str] = None,
-    limit: int = 100,
-    offset: int = 0,
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
+    limit: int = Query(10, ge=1),
+    offset: int = Query(0, ge=0),
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    status: Optional[str] = None
 ):
     """List user's appointments within a date range"""
-    if not start_date:
-        start_date = date.today()
-    if not end_date:
+    try:
+        if not start_date:
+            start_date = date.today()
         end_date = start_date + timedelta(days=30)
 
-    try:
         appointments = Appointment.get_appointment_by_date(
             start_date=start_date,
             end_date=end_date,
@@ -127,11 +133,10 @@ async def list_appointments(
             limit=limit,
             offset=offset
         )
-        
-        if status:
-            appointments = [apt for apt in appointments if apt.status.value == status]
-            
-        return appointments
+        return {
+            "appointments": appointments,
+            "total": len(appointments)
+        }
     except Exception as e:
         security_logger.error(f"Failed to fetch appointments: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch appointments")
@@ -198,3 +203,30 @@ async def cancel_appointment(
     except Exception as e:
         security_logger.error(f"Failed to cancel appointment: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to cancel appointment")
+
+@router.get("/doctors")
+async def list_doctors(
+    current_user: User = Depends(get_current_active_user)
+):
+    try:
+        with get_db_session() as session:
+            doctors = (
+                session.query(Doctor)
+                .join(Doctor.user)
+                .filter(Doctor.status == DoctorStatus.APPROVED)
+                .all()
+            )
+            return [
+                {
+                    "id": doctor.id,
+                    "first_name": doctor.user.first_name,
+                    "last_name": doctor.user.last_name,
+                    "specialization": doctor.specialization
+                } for doctor in doctors
+            ]
+    except Exception as e:
+        security_logger.error(f"Failed to fetch doctors: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch doctors"
+        )

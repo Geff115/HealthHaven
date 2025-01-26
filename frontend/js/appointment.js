@@ -7,6 +7,10 @@ let currentPage = 1;
 let totalAppointments = 0;
 let isLoading = false;
 
+
+let token = localStorage.getItem('token');
+
+
 // State
 let currentUserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -77,15 +81,20 @@ function setupEventListeners() {
 // Load doctors for the select dropdown
 async function loadDoctors() {
     try {
-        const response = await fetch('/doctors', {
+        const response = await fetch(`${API_BASE_URL}/doctors`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
-        if (!response.ok) throw new Error('Failed to fetch doctors');
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Server error:', errorData);
+            throw new Error(error.detail || 'Failed to fetch doctors');
+        }
         
         const doctors = await response.json();
         const select = document.getElementById('doctorSelect');
+        if (!select) throw new Error('Doctor select element not found');
         
         doctors.forEach(doctor => {
             const option = document.createElement('option');
@@ -94,16 +103,17 @@ async function loadDoctors() {
             select.appendChild(option);
         });
     } catch (error) {
-        showNotification('Failed to load doctors list', 'error');
+        console.error('Doctor loading error:', error);
+        showNotification(error.message || 'Failed to load doctors list', 'error');
     }
 }
 
 // Load appointments with filters
 async function loadAppointments() {
     if (isLoading) return; // Prevent duplicate calls
-    isLoading = true;
 
     try {
+        isLoading = true;
         // Show loading spinner
         document.getElementById('loadingSpinner').classList.remove('hidden');
 
@@ -119,7 +129,9 @@ async function loadAppointments() {
         if (date) queryParams.append('start_date', date);
 
         const response = await fetch(`${API_BASE_URL}/appointments?${queryParams}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
         if (!response.ok) {
@@ -191,6 +203,7 @@ async function handleAppointmentSubmit(event) {
         const response = await fetch(`${API_BASE_URL}/appointments`, {
             method: 'POST',
             headers: {
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(appointmentData)
@@ -216,7 +229,10 @@ async function cancelAppointment(appointmentId) {
     
     try {
         const response = await fetch(`${API_BASE_URL}/appointments/${appointmentId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
         
         if (!response.ok) throw new Error('Failed to cancel appointment');
@@ -232,7 +248,11 @@ async function cancelAppointment(appointmentId) {
 // View appointment details
 async function viewAppointment(appointmentId) {
     try {
-        const response = await fetch(`${API_BASE_URL}/appointments/${appointmentId}?user_timezone=${currentUserTimezone}`);
+        const response = await fetch(`${API_BASE_URL}/appointments/${appointmentId}?user_timezone=${currentUserTimezone}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch appointment details');
         
         const appointment = await response.json();
@@ -305,24 +325,24 @@ function getStatusClass(status) {
 }
 
 function updatePagination() {
-    const prevButton = document.getElementById('prevPage');
-    const nextButton = document.getElementById('nextPage');
+    const startRange = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+    const endRange = Math.min(startRange + ITEMS_PER_PAGE - 1, totalAppointments);
     
-    prevButton.disabled = currentPage === 1;
-    nextButton.disabled = currentPage * ITEMS_PER_PAGE >= totalAppointments;
-    
-    document.getElementById('currentPage').textContent = currentPage;
+    if (document.getElementById('startRange')) {
+        document.getElementById('startRange').textContent = startRange;
+        document.getElementById('endRange').textContent = endRange;
+        document.getElementById('totalAppointments').textContent = totalAppointments;
+    }
 }
 
-function showNotification(message, type = 'info', duration = 5000) {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} p-4 mb-4 rounded shadow`;
-    notification.textContent = message;
-
-    const notificationContainer = document.getElementById('notifications');
-    notificationContainer.appendChild(notification);
-
-    setTimeout(() => {
-        notification.remove();
-    }, duration);
+function showNotification(message, type = 'info') {
+    Toastify({
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        style: {
+            background: type === 'error' ? '#ef4444' : '#22c55e'
+        }
+    }).showToast();
 }

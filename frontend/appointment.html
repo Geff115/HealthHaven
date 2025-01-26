@@ -13,7 +13,7 @@
 <body>
     <!-- Navigation -->
     <header>
-        <a href="/" class="logo">Health H</a>
+        <a href="/" class="logo">Health Haven</a>
         <nav>
             <a href="/">Home</a>
             <a href="service.html">Services</a>
@@ -28,6 +28,9 @@
         <!-- Appointment Booking Section -->
         <section class="bg-white rounded-lg shadow-md p-6 mb-8">
             <h2 class="text-2xl font-semibold mb-4">Book New Appointment</h2>
+            <div id="loadingSpinner" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
             <form id="appointmentForm" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Doctor Selection -->
@@ -137,6 +140,7 @@
             </div>
         </div>
     </div>
+    <div id="notifications" class="fixed top-4 right-4 z-50"></div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
