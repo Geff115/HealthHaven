@@ -1,21 +1,25 @@
 // appointment.js
 
 // Constants
-const API_BASE_URL = '/api/v1';
+const API_BASE_URL = '/api/v1/appointments';
 const ITEMS_PER_PAGE = 10;
 let currentPage = 1;
 let totalAppointments = 0;
 let isLoading = false;
 
-
+// Get token from localStorage
 let token = localStorage.getItem('token');
-
 
 // State
 let currentUserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', async () => {
+    if (!token) {
+        window.location.href = '/login.html';
+        return;
+    }
+
     // Initialize date/time pickers
     initializeDatePickers();
     
@@ -71,7 +75,8 @@ function setupEventListeners() {
     });
     
     document.getElementById('nextPage').addEventListener('click', () => {
-        if (currentPage * ITEMS_PER_PAGE < totalAppointments) {
+        const maxPage = Math.ceil(totalAppointments / ITEMS_PER_PAGE);
+        if (currentPage < maxPage) {
             currentPage++;
             loadAppointments();
         }
@@ -86,15 +91,16 @@ async function loadDoctors() {
                 'Authorization': `Bearer ${token}`
             }
         });
+        
         if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Server error:', errorData);
+            const error = await response.json();
             throw new Error(error.detail || 'Failed to fetch doctors');
         }
         
         const doctors = await response.json();
         const select = document.getElementById('doctorSelect');
-        if (!select) throw new Error('Doctor select element not found');
+        
+        select.innerHTML = '<option value="">Choose a doctor...</option>';
         
         doctors.forEach(doctor => {
             const option = document.createElement('option');
@@ -110,48 +116,47 @@ async function loadDoctors() {
 
 // Load appointments with filters
 async function loadAppointments() {
-    if (isLoading) return; // Prevent duplicate calls
+    if (isLoading) return;
 
     try {
         isLoading = true;
-        // Show loading spinner
         document.getElementById('loadingSpinner').classList.remove('hidden');
 
         const status = document.getElementById('statusFilter').value;
         const date = document.getElementById('dateFilter').value;
+        const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
         const queryParams = new URLSearchParams({
             limit: ITEMS_PER_PAGE,
-            offset: (currentPage - 1) * ITEMS_PER_PAGE
+            offset: offset
         });
 
         if (status) queryParams.append('status', status);
         if (date) queryParams.append('start_date', date);
 
-        const response = await fetch(`${API_BASE_URL}/appointments?${queryParams}`, {
+        const response = await fetch(`${API_BASE_URL}/list?${queryParams}`, {  // Updated endpoint
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Failed to load appointments');
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to load appointments');
         }
 
         const data = await response.json();
         totalAppointments = data.total;
-        renderAppointments(data.appointments);
+        renderAppointments(data.items);
         updatePagination();
+
     } catch (error) {
         showNotification(error.message, 'error');
     } finally {
-        // Hide loading spinner and reset loading state
         document.getElementById('loadingSpinner').classList.add('hidden');
         isLoading = false;
     }
 }
-
 
 // Render appointments to the table
 function renderAppointments(appointments) {
@@ -165,7 +170,7 @@ function renderAppointments(appointments) {
                 ${formatDateTime(appointment.appointment_date, appointment.appointment_time)}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-                Dr. ${appointment.doctor.last_name}
+                Dr. ${appointment.doctor.last_name}, ${appointment.doctor.specialization}
             </td>
             <td class="px-6 py-4">
                 ${appointment.appointment_note}
@@ -200,7 +205,7 @@ async function handleAppointmentSubmit(event) {
     };
     
     try {
-        const response = await fetch(`${API_BASE_URL}/appointments`, {
+        const response = await fetch(`${API_BASE_URL}/`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -209,9 +214,10 @@ async function handleAppointmentSubmit(event) {
             body: JSON.stringify(appointmentData)
         });
         
+        const data = await response.json();
+        
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.detail || 'Failed to book appointment');
+            throw new Error(data.detail || 'Failed to book appointment');
         }
         
         showNotification('Appointment booked successfully!', 'success');
@@ -220,40 +226,22 @@ async function handleAppointmentSubmit(event) {
         
     } catch (error) {
         showNotification(error.message, 'error');
-    }
-}
-
-// Cancel appointment
-async function cancelAppointment(appointmentId) {
-    if (!confirm('Are you sure you want to cancel this appointment?')) return;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/appointments/${appointmentId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (!response.ok) throw new Error('Failed to cancel appointment');
-        
-        showNotification('Appointment cancelled successfully', 'success');
-        await loadAppointments();
-        
-    } catch (error) {
-        showNotification('Failed to cancel appointment', 'error');
+        console.error('Appointment booking error:', error);
     }
 }
 
 // View appointment details
 async function viewAppointment(appointmentId) {
     try {
-        const response = await fetch(`${API_BASE_URL}/appointments/${appointmentId}?user_timezone=${currentUserTimezone}`, {
+        const response = await fetch(`${API_BASE_URL}/${appointmentId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
-        if (!response.ok) throw new Error('Failed to fetch appointment details');
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch appointment details');
+        }
         
         const appointment = await response.json();
         const detailsDiv = document.getElementById('appointmentDetails');
@@ -263,41 +251,41 @@ async function viewAppointment(appointmentId) {
             <p><strong>Notes:</strong> ${appointment.appointment_note || 'None'}</p>
             <p><strong>Status:</strong> ${appointment.status}</p>
         `;
-        // Display modal or expand the details section
-        document.getElementById('detailsModal').classList.remove('hidden');
+        
+        document.getElementById('appointmentModal').classList.remove('hidden');
     } catch (error) {
         showNotification('Failed to load appointment details', 'error');
     }
 }
 
-// Close modal
-function closeDetailsModal() {
-    document.getElementById('detailsModal').classList.add('hidden');
-}
-
-// Delete appointment
-async function deleteAppointment() {
-    const appointmentId = document.getElementById('appointmentDetails').dataset.appointmentId;
-    
-    if (!confirm('Are you sure you want to delete this appointment? This action cannot be undone.')) return;
+// Cancel appointment
+async function cancelAppointment(appointmentId) {
+    if (!confirm('Are you sure you want to cancel this appointment?')) return;
     
     try {
-        const response = await fetch(`${API_BASE_URL}/appointments/${appointmentId}`, {
+        const response = await fetch(`${API_BASE_URL}/${appointmentId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
         
-        if (!response.ok) throw new Error('Failed to delete appointment');
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to cancel appointment');
+        }
         
-        showNotification('Appointment deleted successfully', 'success');
-        closeDetailsModal();
+        showNotification('Appointment cancelled successfully', 'success');
         await loadAppointments();
         
     } catch (error) {
-        showNotification('Failed to delete appointment', 'error');
+        showNotification(error.message, 'error');
     }
+}
+
+// Close modal
+function closeDetailsModal() {
+    document.getElementById('appointmentModal').classList.add('hidden');
 }
 
 // Format date and time for display
@@ -312,7 +300,7 @@ function formatDateTime(date, time) {
 
 // Get class for appointment status
 function getStatusClass(status) {
-    switch (status) {
+    switch (status.toUpperCase()) {
         case 'SCHEDULED':
             return 'bg-green-100 text-green-800';
         case 'CANCELLED':
@@ -324,17 +312,21 @@ function getStatusClass(status) {
     }
 }
 
+// Update pagination information
 function updatePagination() {
     const startRange = (currentPage - 1) * ITEMS_PER_PAGE + 1;
-    const endRange = Math.min(startRange + ITEMS_PER_PAGE - 1, totalAppointments);
+    const endRange = Math.min(currentPage * ITEMS_PER_PAGE, totalAppointments);
     
-    if (document.getElementById('startRange')) {
-        document.getElementById('startRange').textContent = startRange;
-        document.getElementById('endRange').textContent = endRange;
-        document.getElementById('totalAppointments').textContent = totalAppointments;
-    }
+    document.getElementById('startRange').textContent = startRange;
+    document.getElementById('endRange').textContent = endRange;
+    document.getElementById('totalAppointments').textContent = totalAppointments;
+    
+    // Update button states
+    document.getElementById('prevPage').disabled = currentPage === 1;
+    document.getElementById('nextPage').disabled = endRange >= totalAppointments;
 }
 
+// Show notification using Toastify
 function showNotification(message, type = 'info') {
     Toastify({
         text: message,
