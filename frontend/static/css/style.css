@@ -1,0 +1,425 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    flex: 1;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(90deg, #424242, #616161);
+    padding: 15px 30px;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header .logo {
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    font-family: 'Georgia', serif;
+    color: #E57373;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+header .logo:hover {
+    color: #FFCDD2;
+}
+
+header nav {
+    display: flex;
+    gap: 20px;
+}
+
+header nav a {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 8px 16px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+header nav a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+header nav .get-started {
+    background-color: #E57373;
+    color: white;
+    font-weight: bold;
+}
+
+header nav .get-started:hover {
+    background-color: #d9534f;
+}
+
+.hero {
+    background-color: #E57373;
+    padding: 20px;
+    text-align: center;
+    color: white;
+}
+
+.hero h1 {
+    font-size: 24px;
+}
+
+.feature-gallery {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+}
+
+.feature-gallery div {
+    position: relative;
+    width: 275px;
+    height: 300px;
+    background-color: #F5F5F5;
+    border: 1px solid #BDBDBD;
+    border-radius: 25px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin: 10px;
+}
+
+.feature-gallery div:hover {
+    transform: scale(1.1);
+    z-index: 10;
+}
+
+.feature-gallery div img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.feature-gallery div:hover img {
+    filter: brightness(50%);
+}
+
+.feature-gallery div:hover .overlay-text {
+    opacity: 1;
+}
+
+.overlay-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.feature-gallery div a {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.image-gallery {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.image-gallery .image-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 120px;
+}
+
+.image-gallery .image-box img {
+    width: 120px;
+    height: 120px;
+    background-color: #F5F5F5;
+    border: 1px solid #BDBDBD;
+    border-radius: 25px;
+    object-fit: cover;
+}
+
+.image-gallery .image-box p {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 8px;
+    color: #424242;
+}
+
+.carousel {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.carousel div {
+    width: 40px;
+    height: 40px;
+    background-color: #BDBDBD;
+    border-radius: 50%;
+    margin: 0 5px;
+}
+
+.appointment-section {
+    background-color: #E57373;
+    padding: 40px 20px;
+    color: white;
+    text-align: center;
+}
+
+.appointment-section h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.appointment-options {
+    display: flex;
+    justify-content: space-between;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.appointment-options div {
+    flex: 1;
+    text-align: center;
+    margin: 10px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.appointment-options div:hover {
+    background-color: #f1f1f1;
+    transform: translateY(-5px);
+}
+
+.appointment-options div select,
+.appointment-options div input {
+    width: 90%;
+    padding: 8px;
+    margin-top: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.appointment-options div i {
+    font-size: 36px;
+    color: #E57373;
+    margin-bottom: 15px;
+}
+
+.appointment-options div h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #424242;
+}
+
+.appointment-options div p {
+    margin: 0;
+    color: #757575;
+    font-size: 14px;
+}
+
+.appointment-button {
+    background-color: #D32F2F;
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+    width: 100%;
+}
+
+.appointment-button:hover {
+    background-color: #B71C1C;
+}
+
+footer {
+    background: linear-gradient(90deg, #424242, #616161);
+    color: white;
+    padding: 40px 20px;
+}
+
+footer .footer-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    text-align: left;
+}
+
+footer .footer-section {
+    flex: 1;
+    margin: 20px;
+}
+
+footer .footer-section h4 {
+    margin-bottom: 15px;
+    border-bottom: 2px solid #E57373;
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+footer .footer-section ul {
+    list-style: none;
+}
+
+footer .footer-section ul li {
+    margin-bottom: 10px;
+}
+
+footer .footer-section ul li a {
+    color: #64B5F6;
+    text-decoration: none;
+}
+
+footer .footer-section ul li a:hover {
+    text-decoration: underline;
+}
+
+footer .social-icons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+footer .social-icons a {
+    width: 35px;
+    height: 35px;
+    background-color: #64B5F6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: white;
+    font-size: 16px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+footer .social-icons a:hover {
+    background-color: #E57373;
+}
+
+footer .footer-bottom {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 14px;
+}
+
+footer .footer-bottom a {
+    color: #64B5F6;
+    text-decoration: none;
+}
+
+footer .footer-bottom a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px;
+    }
+
+    header nav {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .feature-gallery,
+    .appointment-options {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .feature-gallery div,
+    .appointment-options div {
+        width: 90%;
+        margin: 10px 0;
+    }
+
+    .image-gallery {
+        justify-content: center;
+    }
+
+    .image-gallery .image-box {
+        width: 90px;
+    }
+
+    .image-gallery .image-box img {
+        width: 90px;
+        height: 90px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero h1 {
+        font-size: 18px;
+    }
+
+    .appointment-section h2 {
+        font-size: 20px;
+    }
+
+    .appointment-options div {
+        padding: 15px;
+    }
+
+    .appointment-options div h3 {
+        font-size: 16px;
+    }
+
+    .appointment-options div p {
+        font-size: 12px;
+    }
+
+    .appointment-button {
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+}
