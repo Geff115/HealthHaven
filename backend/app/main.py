@@ -16,9 +16,47 @@ from .models.user import User, UserRole
 from fastapi.staticfiles import StaticFiles
 from fastapi_limiter import FastAPILimiter
 
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('app.log')
+    ]
+)
+
+# Get the root logger and set its level
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.DEBUG)
+
+# Create logger for this module
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# Create console handler with debug level
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# Create formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+
+# Add the handler to the logger
+logger.addHandler(ch)
 
 app = FastAPI(title="Health Haven API")
-logger = logging.getLogger(__name__)
+
+# Add middleware to log all requests
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.debug(f"Incoming request: {request.method} {request.url}")
+    response = await call_next(request)
+    logger.debug(f"Response status: {response.status_code}")
+    return response
+
+
+app = FastAPI(title="Health Haven API")
 
 # Get the absolute path of the frontend, static, and js directories
 frontend_path = os.path.abspath(os.path.join(os.path.dirname(__name__), "../frontend"))

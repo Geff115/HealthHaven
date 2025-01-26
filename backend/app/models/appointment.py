@@ -6,6 +6,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 from .base import Base
+from .doctor import Doctor
 from ..db.session import get_db_session
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import Session, relationship
@@ -76,15 +77,27 @@ class Appointment(Base):
         Validate that a doctor and user do not have overlapping appointments
         """
         with get_db_session() as session:
-            conflict = session.query(cls).filter(
-                or_(
-                    and_(cls.doctor_id == doctor_id, cls.appointment_date == appointment_date, cls.appointment_time == appointment_time),
-                    and_(cls.user_id == user_id, cls.appointment_date == appointment_date, cls.appointment_time == appointment_time)
-                )
+            # Check for conflicting doctor appointments
+            doctor_conflict = session.query(cls).filter(
+                cls.doctor_id == doctor_id,
+                cls.appointment_date == appointment_date,
+                cls.appointment_time == appointment_time,
+                cls.status != AppointmentStatus.CANCELLED  # Ignore cancelled appointments
             ).first()
 
-            if conflict:
-                raise ValueError("Conflicting appointments exists.")
+            if doctor_conflict:
+                raise ValueError("The doctor is not available at this time slot. Please choose another time.")
+
+            # Check for conflicting user appointments
+            user_conflict = session.query(cls).filter(
+                cls.user_id == user_id,
+                cls.appointment_date == appointment_date,
+                cls.appointment_time == appointment_time,
+                cls.status != AppointmentStatus.CANCELLED  # Ignore cancelled appointments
+            ).first()
+
+            if user_conflict:
+                raise ValueError("You already have an appointment scheduled at this time slot. Please choose another time.")
     
     @classmethod
     def create_appointment(cls, doctor_id, user_id, appointment_date, appointment_time, appointment_note, user_tz):
@@ -92,11 +105,17 @@ class Appointment(Base):
         Create and save an appointment after validating,
         storing time in UTC
         """
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Creating appointment with params: doctor_id={doctor_id}, user_id={user_id}, "
+                     f"date={appointment_date}, time={appointment_time}, tz={user_tz}")
+
         # Validate the appointment for conflicts
         cls.validate_appointment(doctor_id, user_id, appointment_date, appointment_time)
+        logger.debug("Appointment validation passed")
 
         # Ensuring the appointment is in a future time
         cls.validate_future_date(appointment_date, appointment_time)
+        logger.debug("Future date validation passed")
 
         try:
             # convert the appointment time to UTC
@@ -104,27 +123,56 @@ class Appointment(Base):
             local_dt = datetime.combine(appointment_date, appointment_time)
             local_dt_with_tz = user_timezone.localize(local_dt)  # Add timezone info
             utc_dt = local_dt_with_tz.astimezone(utc)
+            logger.debug(f"Converted time to UTC: {utc_dt}")
+        
+            with get_db_session() as session:
+                # Get doctor information first
+                doctor = session.query(Doctor).join(Doctor.user).filter(Doctor.id == doctor_id).first()
+                if not doctor:
+                    raise ValueError("Doctor not found")
+                logger.debug(f"Found doctor: {doctor.user.first_name} {doctor.user.last_name}")
+
+                appointment = cls(
+                    doctor_id=doctor_id,
+                    user_id=user_id,
+                    appointment_date=utc_dt.date(),
+                    appointment_time=utc_dt.time(),
+                    appointment_note=appointment_note,
+                    status=AppointmentStatus.SCHEDULED
+                )
+                session.add(appointment)
+                session.commit()
+                logger.debug(f"Created appointment with ID: {appointment.id}")
+            
+                # scheduling the reminder task
+                reminder_time = utc_dt - timedelta(hours=1)
+                send_reminder.apply_async(args=[appointment.id], eta=reminder_time)
+                logger.debug("Scheduled reminder task")
+
+                # Prepare response data within the session
+                response_data = {
+                    "id": appointment.id,
+                    "doctor_id": appointment.doctor_id,
+                    "user_id": appointment.user_id,
+                    "appointment_date": appointment.appointment_date,
+                    "appointment_time": appointment.appointment_time,
+                    "appointment_note": appointment.appointment_note,
+                    "status": appointment.status.value,
+                    "created_at": appointment.created_at,
+                    "updated_at": appointment.updated_at,
+                    "doctor": {
+                        "id": doctor.id,
+                        "first_name": doctor.user.first_name,
+                        "last_name": doctor.user.last_name,
+                        "specialization": doctor.specialization
+                    }
+                }
+                logger.debug("Prepared response data")
+                return response_data
+            
         except Exception as e:
-            raise ValueError(f"Invalid timezone provided: {e}")
-
-        # Create and save the appointment
-        with get_db_session() as session:
-            appointment = cls(
-                doctor_id=doctor_id,
-                user_id=user_id,
-                appointment_date=utc_dt.date(),
-                appointment_time=utc_dt.time(),
-                appointment_note=appointment_note
-            )
-            session.add(appointment)
-            session.commit()
-            session.refresh(appointment)
-
-            # scheduling the reminder task
-            reminder_time = utc_dt - timedelta(hours=1)  # Send reminder 1 hour before
-            send_reminder.apply_async(args=[appointment.id], eta=reminder_time)
-
-        return appointment
+            logger.error(f"Failed to create appointment: {str(e)}", exc_info=True)
+            raise ValueError(f"Failed to create appointment: {str(e)}")
 
     @classmethod
     def get_appointment(cls, appointment_id, user_tz):
