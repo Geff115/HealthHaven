@@ -5,7 +5,7 @@ connecting underserved communities with health information, resources, and profe
 
 ## TECH STACK
 
-- **Frontend:** React, HTML, CSS
+- **Frontend:** Vanilla.js, HTML, CSS
 
 - **Backend:** FastAPI
 
@@ -13,9 +13,7 @@ connecting underserved communities with health information, resources, and profe
 
 ## FEATURES
 
-- Symptoms Checker/Diagnosis
-- Telemedicine Consultations
-- Emergency Services Locator
+- Appointment Booking with Doctors
 - Health Information Database
 
 ## SETUP INSTRUCTIONS
@@ -42,10 +40,6 @@ env\Scripts\activate  # For Windows
 For the backend requirements:
     - cd backend
     - pip install -r requirements.txt
-
-For the frontend requirements:
-    - cd frontend
-    - npm install
 ```
 
 
@@ -54,10 +48,6 @@ For the frontend requirements:
 - Backend:
 
     uvicorn main:app --reload
-
-- Frontend:
-
-    npm start
 
 ## CONTRIBUTIONS
 
